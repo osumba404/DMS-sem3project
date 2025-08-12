@@ -1,6 +1,3 @@
-Got it ✅
-Here’s your `.md` version with a **clickable Table of Contents** at the top so you can quickly jump between sections when viewing in GitHub, VS Code, or any Markdown viewer.
-
 ````markdown
 # Disaster Management & Evacuation System
 
