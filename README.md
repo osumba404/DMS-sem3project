@@ -178,9 +178,9 @@ res/
 ```
 
 
-# DMS Java Source Code Structure
+### DMS Java Source Code Structure
 
-## Table of Contents
+#### Table of Contents
 - [java/com/example/disasterapp/](#javacomexampledisasterapp)
   - [activities/](#activities)
     - [SplashActivity.java](#splashactivityjava)
