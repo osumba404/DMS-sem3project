@@ -177,6 +177,213 @@ res/
     └── safety_protocols.html
 ```
 
+
+# DMS Java Source Code Structure
+
+## Table of Contents
+- [java/com/example/disasterapp/](#javacomexampledisasterapp)
+  - [activities/](#activities)
+    - [SplashActivity.java](#splashactivityjava)
+    - [AuthActivity.java](#authactivityjava)
+    - [MainActivity.java](#mainactivityjava)
+    - [ProfileActivity.java](#profileactivityjava)
+    - [EmergencyContactsActivity.java](#emergencycontactsactivityjava)
+    - [TouristModeActivity.java](#touristmodeactivityjava)
+    - [OfflineResourcesActivity.java](#offlineresourcesactivityjava)
+  - [adapters/](#adapters)
+    - [ShelterListAdapter.java](#shelterlistadapterjava)
+    - [EmergencyContactAdapter.java](#emergencycontactadapterjava)
+  - [fragments/](#fragments)
+    - [HomeFragment.java](#homefragmentjava)
+    - [MapViewFragment.java](#mapviewfragmentjava)
+    - [AlertsFragment.java](#alertsfragmentjava)
+    - [SettingsFragment.java](#settingsfragmentjava)
+  - [models/](#models)
+    - [User.java](#userjava)
+    - [Shelter.java](#shelterjava)
+    - [DisasterAlert.java](#disasteralertjava)
+  - [network/](#network)
+    - [ApiClient.java](#apiclientjava)
+    - [ApiService.java](#apiservicejava)
+  - [services/](#services)
+    - [AppFirebaseMessagingService.java](#appfirebasemessagingservicejava)
+    - [LocationUpdatesService.java](#locationupdatesservicejava)
+  - [util/](#util)
+    - [PermissionManager.java](#permissionmanagerjava)
+    - [SharedPreferencesHelper.java](#sharedpreferenceshelperjava)
+  - [db/](#db)
+    - [AppDatabase.java](#appdatabasejava)
+    - [OfflineContentDao.java](#offlinecontentdaojava)
+    - [OfflineContent.java](#offlinecontentjava)
+  - [res/ (Resources)](#res-resources)
+    - [layout/](#layout)
+    - [drawable/](#drawable)
+    - [values/](#values)
+    - [xml/](#xml)
+    - [raw/](#raw)
+
+---
+
+## java/com/example/disasterapp/
+Root package for all Java/Kotlin source code of the application.
+
+---
+
+## activities/
+Activities represent the main screens of the application.
+
+### SplashActivity.java
+- First screen when the app launches.
+- Displays logo/branding for a few seconds.
+- Performs initial checks (login status, permissions).
+- Redirects to `AuthActivity` or `MainActivity`.
+
+### AuthActivity.java
+- Manages user authentication (Sign Up, Login, Forgot Password).
+- Communicates with backend to verify credentials.
+
+### MainActivity.java
+- Core screen after login.
+- Hosts main UI via Bottom Navigation Bar.
+- Manages primary navigation flow.
+
+### ProfileActivity.java
+- Allows user to view/edit profile info.
+
+### EmergencyContactsActivity.java
+- Manage trusted contacts (add, edit, delete).
+- View contact list.
+
+### TouristModeActivity.java
+- Multilingual interface.
+- Offline maps with evacuation routes and shelter locations.
+
+### OfflineResourcesActivity.java
+- Access offline critical information:
+  - First aid guides
+  - Emergency checklists
+  - Disaster-specific protocols
+
+---
+
+## adapters/
+Adapters connect data sources to UI views.
+
+### ShelterListAdapter.java
+- Populates `RecyclerView` with shelter details.
+
+### EmergencyContactAdapter.java
+- Populates `RecyclerView` with emergency contacts.
+
+---
+
+## fragments/
+Modular UI components hosted inside activities.
+
+### HomeFragment.java
+- Dashboard with weather, alerts, "I'm Safe" button.
+
+### MapViewFragment.java
+- Interactive map with:
+  - User location
+  - Shelters & disaster zones
+  - Evacuation routes
+
+### AlertsFragment.java
+- Historical list of notifications and alerts.
+
+### SettingsFragment.java
+- App configuration (notifications, language, logout).
+
+---
+
+## models/
+Data structures representing backend JSON.
+
+### User.java
+- User data (name, email, phone).
+
+### Shelter.java
+- Shelter data (name, location, capacity, status).
+
+### DisasterAlert.java
+- Alert data (title, message, severity, timestamp).
+
+---
+
+## network/
+Handles server communication.
+
+### ApiClient.java
+- Configures HTTP client.
+- Defines base API URL.
+
+### ApiService.java
+- API endpoints (e.g., `loginUser()`, `getShelters()`).
+
+---
+
+## services/
+Background components for long-running tasks.
+
+### AppFirebaseMessagingService.java
+- Receives push notifications (disaster alerts).
+
+### LocationUpdatesService.java
+- Tracks GPS in background.
+- Detects geofence entry and sends alerts.
+
+---
+
+## util/
+Reusable helper functions.
+
+### PermissionManager.java
+- Simplifies runtime permission checks.
+
+### SharedPreferencesHelper.java
+- Saves/retrieves key-value data (e.g., auth token).
+
+---
+
+## db/
+Local database management (Room).
+
+### AppDatabase.java
+- Main database holder/configuration.
+
+### OfflineContentDao.java
+- Data access methods for offline content.
+
+### OfflineContent.java
+- Defines schema for offline content table.
+
+---
+
+## res/ (Resources)
+
+### layout/
+- XML UI definitions.
+  - `activity_main.xml`
+  - `fragment_home.xml`
+  - `item_shelter_list.xml`
+
+### drawable/
+- Graphical assets & vector icons.
+
+### values/
+- `strings.xml`: App text.
+- `colors.xml`: Color palette.
+- `styles.xml`: Themes/styles.
+
+### xml/
+- Config files like `network_security_config.xml`.
+
+### raw/
+- Offline HTML guides (`first_aid_guide.html`, `safety_protocols.html`).
+
+
+
 ---
 
 ## 5. Database Schema (MySQL)
