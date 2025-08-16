@@ -1,10 +1,7 @@
 <?php
-// This is a partial file loaded via AJAX.
-// It assumes the helper function is available or defined elsewhere,
-// but for simplicity, we can define it here.
-
+// This function will still be used to display the list of existing disasters
 function call_api($endpoint) {
-    $api_url = "http://localhost/disaster_management_system/backend/api/admin/" . $endpoint;
+    $api_url = "http://localhost/DMS-sem3project/backend/api/admin/" . $endpoint;
     $response = @file_get_contents($api_url);
     if ($response === FALSE) return null;
     return json_decode($response, true);
@@ -13,9 +10,43 @@ function call_api($endpoint) {
 $disasters_data = call_api('disasters_get_all.php');
 ?>
 
+<!-- Section for Creating a New Disaster -->
+<div class="form-container" style="margin-bottom: 40px;">
+    <h2>Create New Disaster</h2>
+    
+    <!-- This is a standard HTML form that submits directly to a PHP file -->
+    <form action="../backend/api/admin/disasters_create.php" method="POST">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" required autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="type">Type</label>
+            <select id="type" name="type" required>
+                <option value="Flood">Flood</option>
+                <option value="Earthquake">Earthquake</option>
+                <option value="Hurricane">Hurricane</option>
+                <option value="Wildfire">Wildfire</option>
+                <option value="Tsunami">Tsunami</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="wkt">Affected Area (WKT Polygon)</label>
+            <textarea id="wkt" name="affected_area_wkt" rows="4" placeholder="e.g., POLYGON((lng lat, lng lat, ...))" required></textarea>
+        </div>
+        
+        <input type="hidden" name="admin_id" value="<?php echo htmlspecialchars($_SESSION['admin_id']); ?>">
+
+        <button type="submit" class="btn btn-primary">Save Disaster</button>
+    </form>
+</div>
+
+
+<!-- Section for Displaying Existing Disasters -->
 <div class="content-header">
     <h2>Manage Disasters</h2>
-    <button class="btn btn-primary">Create New Disaster</button>
+    <!-- The "Create" button in the header is no longer needed as the form is always visible -->
 </div>
 
 <table>
@@ -39,8 +70,8 @@ $disasters_data = call_api('disasters_get_all.php');
                     <td><?php echo htmlspecialchars($disaster['status']); ?></td>
                     <td><?php echo htmlspecialchars($disaster['created_at']); ?></td>
                     <td>
-                        <button class="btn btn-primary">Edit</button>
-                        <button class="btn btn-danger">Delete</button>
+                        <button class="btn btn-primary btn-edit-disaster" data-id="<?php echo htmlspecialchars($disaster['id']); ?>">Edit</button>
+                        <button class="btn btn-danger btn-delete-disaster" data-id="<?php echo htmlspecialchars($disaster['id']); ?>">Delete</button>
                     </td>
                 </tr>
             <?php endforeach; ?>

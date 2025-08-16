@@ -1,6 +1,6 @@
 <?php
 function call_api($endpoint) {
-    $api_url = "http://localhost/disaster_management_system/backend/api/admin/" . $endpoint;
+    $api_url = "http://localhost/DMS-sem3project/backend/api/admin/" . $endpoint;
     $response = @file_get_contents($api_url);
     if ($response === FALSE) return null;
     return json_decode($response, true);

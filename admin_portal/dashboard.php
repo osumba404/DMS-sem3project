@@ -2,7 +2,7 @@
 // Helper function to call our own API
 function call_api($endpoint) {
     // IMPORTANT: Replace with the actual URL of your backend in a real deployment
-    $api_url = "http://localhost/disaster_management_system/backend/api/admin/" . $endpoint;
+    $api_url = "http://localhost/DMS-sem3project/backend/api/admin/" . $endpoint;
     $response = @file_get_contents($api_url);
     if ($response === FALSE) {
         return null;

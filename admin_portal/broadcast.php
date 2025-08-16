@@ -2,8 +2,12 @@
     <h2>Broadcast a New Message</h2>
 </div>
 
+<div class="content-header">
+    <h2>Broadcast a New Message</h2>
+</div>
+
 <div class="form-container">
-    <form id="broadcast-form">
+    <form action="../backend/api/admin/broadcast_process.php" method="POST">
         <div class="form-group">
             <label for="title">Title</label>
             <input type="text" id="title" name="title" required>
@@ -20,6 +24,18 @@
                 <option value="Tourists">Tourists</option>
             </select>
         </div>
+        
+        <?php
+        // A robust check to ensure the session variable exists before using it.
+        // This confirms that our session handling in index.php is working as expected.
+        if (isset($_SESSION['admin_id'])) {
+            echo '<input type="hidden" name="admin_id" value="' . htmlspecialchars($_SESSION['admin_id']) . '">';
+        } else {
+            // If the session is somehow lost, show an error instead of a broken form.
+            echo '<p style="color: red;">Error: Admin session not found. Please log in again.</p>';
+        }
+        ?>
+        
         <button type="submit" class="btn btn-primary">Send Broadcast</button>
     </form>
 </div>
@@ -34,5 +50,6 @@
         padding: 10px;
         border: 1px solid #ddd;
         border-radius: 4px;
+        box-sizing: border-box;
     }
 </style>
