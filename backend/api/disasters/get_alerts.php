@@ -55,7 +55,10 @@ if ($result) {
     }
     
     // 3. Send the response
-    send_response(200, 'Active disaster alerts fetched successfully.', $alerts);
+    //send_response(200, 'Active disaster alerts fetched successfully.', $alerts);
+    // {"status":"success", "message":"...", "data": {"alerts": [...]}}
+    $responseData = ['alerts' => $alerts];
+    send_response(200, 'Active disaster alerts fetched successfully.', $responseData);
 } else {
     // Handle potential query errors
     send_response(500, 'Internal Server Error. Could not fetch alerts.');

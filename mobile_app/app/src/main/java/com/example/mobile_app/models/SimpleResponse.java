@@ -2,18 +2,15 @@ package com.example.mobile_app.models;
 
 import com.google.gson.annotations.SerializedName;
 
-public class AuthResponse {
+// This class is for any API response that only returns a status and a message.
+public class SimpleResponse {
     @SerializedName("status")
     private String status;
 
     @SerializedName("message")
     private String message;
 
-    @SerializedName("data")
-    private User data;
-
     // Getters
     public String getStatus() { return status; }
     public String getMessage() { return message; }
-    public User getData() { return data; }
 }

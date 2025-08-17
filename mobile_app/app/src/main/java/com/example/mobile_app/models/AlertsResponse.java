@@ -1,8 +1,9 @@
 package com.example.mobile_app.models;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.List;
 
-public class AuthResponse {
+public class AlertsResponse {
     @SerializedName("status")
     private String status;
 
@@ -10,10 +11,10 @@ public class AuthResponse {
     private String message;
 
     @SerializedName("data")
-    private User data;
+    private List<DisasterAlert> data;
 
     // Getters
     public String getStatus() { return status; }
     public String getMessage() { return message; }
-    public User getData() { return data; }
+    public List<DisasterAlert> getData() { return data; }
 }

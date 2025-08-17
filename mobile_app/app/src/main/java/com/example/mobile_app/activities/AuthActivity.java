@@ -108,9 +108,9 @@ public class AuthActivity extends AppCompatActivity {
                     Toast.makeText(AuthActivity.this, authResponse.getMessage(), Toast.LENGTH_LONG).show();
                     if ("success".equals(authResponse.getStatus())) {
                         // TODO: Save user session and navigate to MainActivity
-                        // Intent intent = new Intent(AuthActivity.this, MainActivity.class);
-                        // startActivity(intent);
-                        // finish();
+                        Intent intent = new Intent(AuthActivity.this, MainActivity.class);
+                        startActivity(intent);
+                        finish(); // Close AuthActivity so the user can't go back to it
                     }
                 } else {
                     Toast.makeText(AuthActivity.this, "Login failed. Please try again.", Toast.LENGTH_SHORT).show();
