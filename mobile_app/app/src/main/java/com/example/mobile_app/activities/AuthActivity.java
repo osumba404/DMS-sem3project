@@ -18,6 +18,7 @@ import com.example.mobile_app.models.AuthResponse;
 import com.example.mobile_app.models.User;
 import com.example.mobile_app.network.ApiClient;
 import com.example.mobile_app.network.ApiService;
+import com.example.mobile_app.util.SessionManager;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -30,6 +31,7 @@ public class AuthActivity extends AppCompatActivity {
     EditText etLoginEmail, etLoginPassword, etRegisterName, etRegisterEmail, etRegisterPhone, etRegisterPassword;
     Button btnLogin, btnRegister;
     TextView tvGoToRegister, tvGoToLogin;
+    private SessionManager sessionManager;
 
     ApiService apiService;
 
@@ -46,6 +48,8 @@ public class AuthActivity extends AppCompatActivity {
 
         // Setup button click listeners
         setupListeners();
+
+        sessionManager = new SessionManager(getApplicationContext());
     }
 
     private void initializeViews() {
@@ -107,10 +111,20 @@ public class AuthActivity extends AppCompatActivity {
                     AuthResponse authResponse = response.body();
                     Toast.makeText(AuthActivity.this, authResponse.getMessage(), Toast.LENGTH_LONG).show();
                     if ("success".equals(authResponse.getStatus())) {
-                        // TODO: Save user session and navigate to MainActivity
+                        // Get the User object from the response
+                        User loggedInUser = authResponse.getData();
+                        // Save the user's session
+                        sessionManager.createLoginSession(loggedInUser);
+
+                        Toast.makeText(AuthActivity.this, "Welcome " + loggedInUser.getFullName(), Toast.LENGTH_LONG).show();
+
+                        // Navigate to MainActivity
                         Intent intent = new Intent(AuthActivity.this, MainActivity.class);
                         startActivity(intent);
-                        finish(); // Close AuthActivity so the user can't go back to it
+                        finish();
+                    } else {
+                        // Show error message if login failed on server
+                        Toast.makeText(AuthActivity.this, authResponse.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 } else {
                     Toast.makeText(AuthActivity.this, "Login failed. Please try again.", Toast.LENGTH_SHORT).show();

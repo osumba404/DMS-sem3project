@@ -1,11 +1,13 @@
-
 <?php
 /**
- * API Endpoint: Get Emergency Contacts
+ * API Endpoint: Get All Emergency Contacts (New System)
  * 
- * Retrieves all emergency contacts for a given user.
+ * Retrieves three lists for a given user:
+ * 1. Accepted contacts (people the user can notify).
+ * 2. Pending requests the user has sent.
+ * 3. Pending requests the user has received.
+ *
  * Method: GET
- * 
  * Required GET parameters:
  * - user_id
  */
@@ -15,46 +17,106 @@ header('Access-Control-Allow-Origin: *');
 
 require_once '../../config/db_connect.php';
 
-function send_response($status, $message, $data = null) {
-    http_response_code($status);
-    $response = ['status' => $status < 400 ? 'success' : 'error', 'message' => $message];
-    if ($data !== null) {
-        $response['data'] = $data;
-    }
-    echo json_encode($response);
+// --- Main Logic ---
+
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    http_response_code(405);
+    echo json_encode(['status' => 'error', 'message' => 'Method Not Allowed. Please use GET.']);
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    send_response(405, 'Method Not Allowed. Please use GET.');
-}
-
-// 1. Get and validate user_id from the query string
 $user_id = $_GET['user_id'] ?? null;
 
-if (empty($user_id)) {
-    send_response(400, 'Bad Request. user_id is a required parameter.');
-}
-if (!is_numeric($user_id)) {
-    send_response(400, 'Bad Request. user_id must be a numeric value.');
-}
-
-// 2. Prepare and execute the SELECT statement
-$stmt = $conn->prepare(
-    "SELECT id, name, phone_number, relationship FROM emergency_contacts WHERE user_id = ?"
-);
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-
-$contacts = [];
-while ($row = $result->fetch_assoc()) {
-    $contacts[] = $row;
+if (empty($user_id) || !is_numeric($user_id)) {
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'Bad Request. A valid user_id is required.']);
+    exit();
 }
 
-// 3. Send the response
-send_response(200, 'Contacts fetched successfully.', $contacts);
+try {
+    // --- 1. Fetch ACCEPTED Contacts ---
+    // These are people that `user_id` has added and who have accepted.
+    $sql_accepted = "SELECT 
+                        ec.id as request_id,
+                        u.id as user_id,
+                        u.full_name,
+                        u.phone_number,
+                        ec.relationship
+                    FROM emergency_contacts ec
+                    JOIN users u ON ec.contact_user_id = u.id
+                    WHERE ec.user_id = ? AND ec.status = 'accepted'";
+    
+    $stmt_accepted = $conn->prepare($sql_accepted);
+    $stmt_accepted->bind_param("i", $user_id);
+    $stmt_accepted->execute();
+    $result_accepted = $stmt_accepted->get_result();
+    $accepted_contacts = $result_accepted->fetch_all(MYSQLI_ASSOC);
+    $stmt_accepted->close();
 
-$stmt->close();
-$conn->close();
+
+    // --- 2. Fetch PENDING requests the user has SENT ---
+    // These are people `user_id` has invited.
+    $sql_pending_sent = "SELECT 
+                            ec.id as request_id,
+                            u.id as user_id,
+                            u.full_name,
+                            u.phone_number,
+                            ec.relationship
+                         FROM emergency_contacts ec
+                         JOIN users u ON ec.contact_user_id = u.id
+                         WHERE ec.user_id = ? AND ec.status = 'pending'";
+
+    $stmt_pending_sent = $conn->prepare($sql_pending_sent);
+    $stmt_pending_sent->bind_param("i", $user_id);
+    $stmt_pending_sent->execute();
+    $result_pending_sent = $stmt_pending_sent->get_result();
+    $pending_sent_requests = $result_pending_sent->fetch_all(MYSQLI_ASSOC);
+    $stmt_pending_sent->close();
+
+
+    // --- 3. Fetch PENDING requests the user has RECEIVED ---
+    // These are people who have invited `user_id`.
+    $sql_pending_received = "SELECT 
+                                ec.id as request_id,
+                                u.id as user_id,
+                                u.full_name,
+                                u.phone_number,
+                                ec.relationship
+                             FROM emergency_contacts ec
+                             JOIN users u ON ec.user_id = u.id
+                             WHERE ec.contact_user_id = ? AND ec.status = 'pending'";
+
+    $stmt_pending_received = $conn->prepare($sql_pending_received);
+    $stmt_pending_received->bind_param("i", $user_id);
+    $stmt_pending_received->execute();
+    $result_pending_received = $stmt_pending_received->get_result();
+    $pending_received_requests = $result_pending_received->fetch_all(MYSQLI_ASSOC);
+    $stmt_pending_received->close();
+    
+    // --- Combine all results into a single response object ---
+    $response_data = [
+        'accepted_contacts' => $accepted_contacts,
+        'pending_sent_requests' => $pending_sent_requests,
+        'pending_received_requests' => $pending_received_requests
+    ];
+
+    http_response_code(200);
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Contacts retrieved successfully.',
+        'data' => $response_data
+    ]);
+
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Internal Server Error: ' . $e->getMessage()
+    ]);
+} finally {
+    if (isset($conn)) {
+        $conn->close();
+    }
+}
+exit();
 ?>

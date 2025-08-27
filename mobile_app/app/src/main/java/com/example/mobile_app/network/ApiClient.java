@@ -7,7 +7,7 @@ public class ApiClient {
 
     // IMPORTANT: This is the base URL for your PHP backend.
     // Use http://10.0.2.2/ for the Android emulator to connect to your localhost.
-    private static final String BASE_URL = "http://192.168.0.110:8000/backend/api/";
+    private static final String BASE_URL = "http://192.168.0.101:8000/backend/api/";
 
     private static Retrofit retrofit = null;
 

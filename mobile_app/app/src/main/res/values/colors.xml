@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Primary Theme Colors -->
+    <color name="primary_dark">#00579B</color> <!-- A deep, trustworthy blue for the toolbar -->
+    <color name="primary">#007AC1</color> <!-- A slightly lighter blue for primary elements -->
+    <color name="primary_light">#67DAFF</color> <!-- A light accent blue -->
+
+    <!-- Accent / Action Colors -->
+    <color name="accent_safe">#2E7D32</color> <!-- A reassuring green for "safe" actions -->
+    <color name="accent_warning">#FFA000</color> <!-- A standard amber for warnings -->
+    <color name="accent_danger">#D32F2F</color> <!-- A clear red for danger/alerts -->
+
+    <!-- Standard UI Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="light_gray">#F5F5F5</color> <!-- A light background color -->
 </resources>

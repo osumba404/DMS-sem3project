@@ -36,10 +36,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // 1. Get input from the JSON request body
 $data = json_decode(file_get_contents("php://input"), true);
 
-$user_id = $data['user_id'] ?? null;
-$name = $data['name'] ?? null;
-$phone_number = $data['phone_number'] ?? null;
-$relationship = $data['relationship'] ?? ''; // Optional field
+// $user_id = $data['user_id'] ?? null;
+// $name = $data['name'] ?? null;
+// $phone_number = $data['phone_number'] ?? null;
+// $relationship = $data['relationship'] ?? ''; 
+
+$user_id = $_POST['user_id'] ?? null;
+$name = $_POST['name'] ?? null;
+$phone_number = $_POST['phone_number'] ?? null;
+$relationship = $_POST['relationship'] ?? '';
 
 // 2. Validate the input
 if (empty($user_id) || empty($name) || empty($phone_number)) {

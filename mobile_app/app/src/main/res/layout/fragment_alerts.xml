@@ -1,13 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".fragments.AlertsFragment">
 
-    <TextView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_alerts_history"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:clipToPadding="false"
+        tools:listitem="@layout/item_broadcast_message"/>
+
+    <ProgressBar
+        android:id="@+id/progress_bar_alerts"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"/>
+
+    <TextView
+        android:id="@+id/tv_no_alerts_history"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No past alerts or notifications."
         android:layout_gravity="center"
-        android:text="Alerts Fragment"
-        android:textSize="24sp"/>
+        android:visibility="gone"/>
 
 </FrameLayout>

@@ -49,10 +49,13 @@ ALTER TABLE users ADD updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON
 CREATE TABLE `emergency_contacts` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `user_id` INT NOT NULL,
-  `name` VARCHAR(200) NOT NULL,
-  `phone_number` VARCHAR(20) NOT NULL,
-  `relationship` VARCHAR(50),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+  `contact_user_id` INT NOT NULL,
+  `relationship` VARCHAR(50) NOT NULL,
+  `status` ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`contact_user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  UNIQUE KEY `unique_contact_pair` (`user_id`, `contact_user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------

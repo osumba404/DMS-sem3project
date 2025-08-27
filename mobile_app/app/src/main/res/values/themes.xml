@@ -1,9 +1,49 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.Mobile_app" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <!--
+    Base application theme for Day Mode.
+    We will use Theme.MaterialComponents which is modern and works well with our Toolbar.
+    NoActionBar tells the app we are providing our own Toolbar.
+    -->
+    <style name="Theme.Mobile_app" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item> <!-- Text/icons on top of primary color -->
+
+        <!-- Secondary brand color (not heavily used in this design). -->
+        <item name="colorSecondary">@color/primary_light</item>
+        <item name="colorSecondaryVariant">@color/primary</item>
+        <item name="colorOnSecondary">@color/black</item>
+
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/primary_dark</item>
+
+        <!-- Customize your theme here. -->
+        <item name="android:windowBackground">@color/light_gray</item>
+        <item name="materialAlertDialogTheme">@style/AppMaterialAlertDialogTheme</item>
+
+        <!-- STYLE THE TOOLBAR AND 3-DOTS MENU -->
+        <item name="toolbarStyle">@style/Widget.MaterialComponents.Toolbar.Primary</item>
+        <item name="actionOverflowButtonStyle">@style/Widget.AppCompat.ActionButton.Overflow</item>
+
     </style>
 
-    <style name="Theme.Mobile_app" parent="Base.Theme.Mobile_app" />
+    <!--
+    A custom style for our dialogs (like the Add Contact dialog)
+    to match the app's theme.
+    -->
+    <style name="AppMaterialAlertDialogTheme" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorSecondary">@color/primary_light</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/black</item>
+        <item name="shapeAppearanceOverlay">@style/DialogShapeAppearance</item>
+    </style>
+
+    <style name="DialogShapeAppearance">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
 </resources>

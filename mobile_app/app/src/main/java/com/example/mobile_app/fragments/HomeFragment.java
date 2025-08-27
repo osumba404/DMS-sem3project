@@ -23,6 +23,7 @@ import com.example.mobile_app.models.SimpleResponse;
 import com.example.mobile_app.network.ApiClient;
 import com.example.mobile_app.network.ApiService;
 import com.example.mobile_app.network.MarkSafeRequest;
+import com.example.mobile_app.util.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,8 @@ public class HomeFragment extends Fragment {
     private TextView tvNoAlerts;
     private Button btnImSafe;
     private ApiService apiService;
+    private SessionManager sessionManager;
+    private int userId;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -49,6 +52,9 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        sessionManager = new SessionManager(getContext());
+        userId = sessionManager.getUserId();
 
         recyclerView = view.findViewById(R.id.recycler_view_alerts);
         progressBar = view.findViewById(R.id.progress_bar);
@@ -103,7 +109,7 @@ public class HomeFragment extends Fragment {
 
     private void markUserAsSafe() {
         // TODO: Replace with real user ID from SharedPreferences after login
-        int userId = 1;
+        // int userId = 1;
         // TODO: Replace with real GPS coordinates from location service
         double latitude = 34.0522;
         double longitude = -118.2437;
