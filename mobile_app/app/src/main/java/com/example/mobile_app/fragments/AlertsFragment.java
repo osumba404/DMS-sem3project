@@ -14,11 +14,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mobile_app.R;
-import com.example.mobile_app.adapters.BroadcastMessageAdapter;
-import com.example.mobile_app.models.BroadcastMessage;
-import com.example.mobile_app.models.BroadcastResponse;
+import com.example.mobile_app.adapters.UnifiedAlertsAdapter; // <-- Import the new adapter
+import com.example.mobile_app.models.Alert; // <-- Import the new model
+import com.example.mobile_app.models.UnifiedAlertsResponse; // <-- Import the new response
 import com.example.mobile_app.network.ApiClient;
 import com.example.mobile_app.network.ApiService;
+import com.example.mobile_app.util.SessionManager; // <-- Import SessionManager
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,11 +31,12 @@ import retrofit2.Response;
 public class AlertsFragment extends Fragment {
 
     private RecyclerView recyclerView;
-    private BroadcastMessageAdapter adapter;
-    private List<BroadcastMessage> messageList = new ArrayList<>();
+    private UnifiedAlertsAdapter adapter; // <-- Use the new adapter
+    private List<Alert> alertList = new ArrayList<>(); // <-- Use the new model
     private ProgressBar progressBar;
     private TextView tvNoAlerts;
     private ApiService apiService;
+    private SessionManager sessionManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -47,6 +49,7 @@ public class AlertsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         apiService = ApiClient.getApiService();
+        sessionManager = new SessionManager(requireContext()); // Initialize SessionManager
         initializeViews(view);
         setupRecyclerView();
         fetchAlertHistory();
@@ -59,7 +62,7 @@ public class AlertsFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        adapter = new BroadcastMessageAdapter(messageList);
+        adapter = new UnifiedAlertsAdapter(alertList); // Use the new adapter
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
     }
@@ -69,16 +72,25 @@ public class AlertsFragment extends Fragment {
         tvNoAlerts.setVisibility(View.GONE);
         recyclerView.setVisibility(View.GONE);
 
-        apiService.getBroadcastHistory().enqueue(new Callback<BroadcastResponse>() {
+        int userId = sessionManager.getUserId();
+        if (userId == 0) {
+            Toast.makeText(getContext(), "Error: Not logged in.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Call the new unified alerts endpoint
+        apiService.getUnifiedAlerts(userId).enqueue(new Callback<UnifiedAlertsResponse>() {
             @Override
-            public void onResponse(@NonNull Call<BroadcastResponse> call, @NonNull Response<BroadcastResponse> response) {
+            public void onResponse(@NonNull Call<UnifiedAlertsResponse> call, @NonNull Response<UnifiedAlertsResponse> response) {
                 progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
-                    List<BroadcastMessage> messages = response.body().getData();
-                    if (messages != null && !messages.isEmpty()) {
+                    List<Alert> alerts = response.body().getData();
+                    if (alerts != null && !alerts.isEmpty()) {
                         recyclerView.setVisibility(View.VISIBLE);
-                        messageList.clear();
-                        messageList.addAll(messages);
+
+                        // Replace the entire list with the new sorted list from the server
+                        alertList.clear();
+                        alertList.addAll(alerts);
                         adapter.notifyDataSetChanged();
                     } else {
                         tvNoAlerts.setVisibility(View.VISIBLE);
@@ -90,7 +102,7 @@ public class AlertsFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(@NonNull Call<BroadcastResponse> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<UnifiedAlertsResponse> call, @NonNull Throwable t) {
                 progressBar.setVisibility(View.GONE);
                 tvNoAlerts.setVisibility(View.VISIBLE);
                 Toast.makeText(getContext(), "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();

@@ -1,92 +1,97 @@
 <?php
 /**
- * API Endpoint: Mark User as Safe
- * 
- * Updates the user's status to 'safe' and records their last known location.
+ * API Endpoint: Mark User as Safe and Notify Contacts
  * Method: POST
- * 
- * Required POST parameters (as JSON):
- * - user_id
- * - latitude
- * - longitude
+ * Body: JSON with user_id, latitude, longitude
  */
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Content-Type');
-
 require_once '../../config/db_connect.php';
 
-function send_response($status, $message, $data = null) {
-    http_response_code($status);
-    $response = ['status' => $status < 400 ? 'success' : 'error', 'message' => $message];
-    if ($data !== null) {
-        $response['data'] = $data;
-    }
-    echo json_encode($response);
+// --- Main Logic ---
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['status' => 'error', 'message' => 'Method Not Allowed.']);
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    send_response(405, 'Method Not Allowed. Please use POST.');
-}
-
-// 1. Get and validate input from the JSON request body
 $data = json_decode(file_get_contents("php://input"), true);
-
 $user_id = $data['user_id'] ?? null;
 $latitude = $data['latitude'] ?? null;
 $longitude = $data['longitude'] ?? null;
 
-if (empty($user_id) || $latitude === null || $longitude === null) {
-    send_response(400, 'Bad Request. user_id, latitude, and longitude are required.');
+if (empty($user_id) || !is_numeric($user_id) || $latitude === null || $longitude === null) {
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'Bad Request: user_id and location are required.']);
+    exit();
 }
 
-if (!is_numeric($user_id) || !is_numeric($latitude) || !is_numeric($longitude)) {
-     send_response(400, 'Bad Request. All input values must be numeric.');
-}
-
-// 2. Start a transaction to ensure both updates succeed or fail together
+// Start a transaction
 $conn->begin_transaction();
 
 try {
-    // 3. First SQL statement: Update the user's main status and location
-    $stmt1 = $conn->prepare(
-        "UPDATE users SET 
-            is_safe = TRUE, 
-            last_known_latitude = ?, 
-            last_known_longitude = ? 
-        WHERE id = ?"
-    );
-    $stmt1->bind_param("ddi", $latitude, $longitude, $user_id);
-    $stmt1->execute();
+    // --- Step 1: Update the user's own status and location ---
+    $stmt_user_update = $conn->prepare("UPDATE users SET is_safe = TRUE, last_known_latitude = ?, last_known_longitude = ? WHERE id = ?");
+    $stmt_user_update->bind_param("ddi", $latitude, $longitude, $user_id);
+    $stmt_user_update->execute();
+    $stmt_user_update->close();
 
-    // Check if the update affected any row
-    if ($stmt1->affected_rows === 0) {
-        throw new Exception('User not found or status already safe.');
+    // Get the user's full name to use in the notification message
+    $stmt_user_name = $conn->prepare("SELECT full_name FROM users WHERE id = ?");
+    $stmt_user_name->bind_param("i", $user_id);
+    $stmt_user_name->execute();
+    $user_name = $stmt_user_name->get_result()->fetch_assoc()['full_name'];
+    $stmt_user_name->close();
+
+    if (!$user_name) {
+        throw new Exception("Could not find user name.");
     }
-    $stmt1->close();
+    
+    // --- Step 2: Find all accepted emergency contacts for this user ---
+    // We use the same UNION query from get_contacts.php to find all relationships.
+    $sql_contacts = "
+        (SELECT contact_user_id as contact_id FROM emergency_contacts WHERE user_id = ? AND status = 'accepted')
+        UNION
+        (SELECT user_id as contact_id FROM emergency_contacts WHERE contact_user_id = ? AND status = 'accepted')
+    ";
+    $stmt_contacts = $conn->prepare($sql_contacts);
+    $stmt_contacts->bind_param("ii", $user_id, $user_id);
+    $stmt_contacts->execute();
+    $result_contacts = $stmt_contacts->get_result();
+    $contacts = $result_contacts->fetch_all(MYSQLI_ASSOC);
+    $stmt_contacts->close();
 
-    // 4. Second SQL statement: Log this location update in the history table
-    $stmt2 = $conn->prepare(
-        "INSERT INTO user_locations (user_id, location) VALUES (?, POINT(?, ?))"
-    );
-    $stmt2->bind_param("idd", $user_id, $longitude, $latitude);
-    $stmt2->execute();
-    $stmt2->close();
-    
-    // 5. If both queries were successful, commit the transaction
+    // --- Step 3: Insert a notification for each contact ---
+    $notification_title = "Safety Alert";
+    $notification_message = "$user_name has marked themselves as safe.";
+
+    $stmt_notify = $conn->prepare("INSERT INTO notifications (recipient_user_id, sender_user_id, title, message) VALUES (?, ?, ?, ?)");
+
+    foreach ($contacts as $contact) {
+        $recipient_id = $contact['contact_id'];
+        $stmt_notify->bind_param("iiss", $recipient_id, $user_id, $notification_title, $notification_message);
+        $stmt_notify->execute();
+    }
+    $stmt_notify->close();
+
+    // If all steps succeeded, commit the transaction
     $conn->commit();
-    
-    send_response(200, 'User status updated to safe successfully.');
+
+    http_response_code(200);
+    echo json_encode(['status' => 'success', 'message' => 'Status updated to safe. Contacts have been notified.']);
 
 } catch (Exception $e) {
-    // If any query fails, roll back the transaction
+    // If any step failed, roll back all database changes
     $conn->rollback();
-    // Use the exception message or a generic one
-    send_response(500, 'Failed to update user status. ' . $e->getMessage());
+    
+    http_response_code(500);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Internal Server Error: ' . $e->getMessage()
+    ]);
 }
 
 $conn->close();
+exit();
 ?>

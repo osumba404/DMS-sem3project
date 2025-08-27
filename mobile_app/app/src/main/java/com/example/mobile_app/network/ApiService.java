@@ -3,11 +3,14 @@ package com.example.mobile_app.network;
 import com.example.mobile_app.models.AlertsResponse;
 import com.example.mobile_app.models.AuthResponse;
 import com.example.mobile_app.models.ContactsResponse;
+import com.example.mobile_app.models.NotificationsResponse;
 import com.example.mobile_app.models.SheltersResponse;
 import com.example.mobile_app.models.SimpleResponse;
 import com.example.mobile_app.models.User;
 import com.example.mobile_app.models.UserSearchResponse;
 import com.example.mobile_app.models.BroadcastResponse;
+
+import com.example.mobile_app.models.UnifiedAlertsResponse;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -78,6 +81,12 @@ public interface ApiService {
             @Field("relationship") String relationship
     );
 
-    @GET("users/get_broadcast_history.php")
-    Call<BroadcastResponse> getBroadcastHistory();
+//    @GET("users/get_broadcast_history.php")
+//    Call<BroadcastResponse> getBroadcastHistory();
+
+    @GET("users/get_notifications.php")
+    Call<NotificationsResponse> getNotifications(@Query("user_id") int userId);
+
+    @GET("users/get_unified_alerts.php")
+    Call<UnifiedAlertsResponse> getUnifiedAlerts(@Query("user_id") int userId);
 }

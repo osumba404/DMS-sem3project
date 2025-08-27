@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -11,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
@@ -20,15 +22,32 @@ import com.example.mobile_app.R;
 import com.example.mobile_app.fragments.AlertsFragment;
 import com.example.mobile_app.fragments.HomeFragment;
 import com.example.mobile_app.fragments.MapViewFragment;
+import com.example.mobile_app.models.Notification;
+import com.example.mobile_app.models.NotificationsResponse;
+import com.example.mobile_app.network.ApiClient;
+import com.example.mobile_app.network.ApiService;
+import com.example.mobile_app.util.SessionManager;
+import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class MainActivity extends AppCompatActivity {
 
-    // A variable for our custom title TextView in the toolbar
+    // UI Elements
     private TextView toolbarTitle;
+    private BottomNavigationView bottomNav;
 
-    // Launcher for handling the permission request result
+    // Session & Networking
+    private SessionManager sessionManager;
+    private ApiService apiService;
+
+    // Permission Handling
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -43,75 +62,73 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // --- Toolbar Setup ---
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        // Disable the default title provided by the Toolbar
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayShowTitleEnabled(false);
-        }
-        // Get a reference to our custom title TextView from the layout
-        toolbarTitle = findViewById(R.id.toolbar_title);
+        // Initialize Session and API Service first
+        sessionManager = new SessionManager(getApplicationContext());
+        apiService = ApiClient.getApiService();
 
+        // Setup UI components
+        setupToolbar();
+        setupBottomNavigation();
 
-        // --- Bottom Navigation Setup ---
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-        bottomNav.setOnItemSelectedListener(navListener);
-
-
-        // --- Initial Fragment and Permission Check ---
+        // Load initial state
         if (savedInstanceState == null) {
-            // Load the default fragment (HomeFragment)
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                    new HomeFragment()).commit();
-            // Set the initial title on our custom TextView
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeFragment()).commit();
             toolbarTitle.setText("Home");
         }
 
-        // Check for location permission as soon as the activity is created
+        // Check for necessary permissions on startup
         checkAndRequestLocationPermission();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Check for new notifications every time the user brings the app to the foreground
+        fetchNotifications();
+    }
 
-    /**
-     * This method is called by the system to create the options menu (three dots).
-     */
+    private void setupToolbar() {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+        toolbarTitle = findViewById(R.id.toolbar_title);
+    }
+
+    private void setupBottomNavigation() {
+        bottomNav = findViewById(R.id.bottom_navigation);
+        bottomNav.setOnItemSelectedListener(navListener);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_options_menu, menu);
         return true;
     }
 
-    /**
-     * This method is called when a user clicks on an item in the options menu.
-     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
 
         if (itemId == R.id.menu_contacts) {
-            Intent intent = new Intent(this, EmergencyContactsActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(this, EmergencyContactsActivity.class));
             return true;
         } else if (itemId == R.id.menu_profile) {
             Toast.makeText(this, "Profile screen coming soon!", Toast.LENGTH_SHORT).show();
             return true;
         } else if (itemId == R.id.menu_logout) {
-            // Logout and go back to the login screen
+            sessionManager.logoutUser();
             Intent intent = new Intent(this, AuthActivity.class);
-            // Flags to clear the activity stack so the user can't press "back" to get into the app
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
-            finish(); // Close MainActivity
+            finish();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * Listener for handling clicks on the bottom navigation bar items.
-     */
     private final BottomNavigationView.OnItemSelectedListener navListener =
             item -> {
                 Fragment selectedFragment = null;
@@ -127,26 +144,55 @@ public class MainActivity extends AppCompatActivity {
                 } else if (itemId == R.id.nav_alerts) {
                     selectedFragment = new AlertsFragment();
                     title = "Alerts";
+                    // When user clicks the Alerts tab, remove the badge
+                    removeNotificationBadge();
+                    // TODO: Call an API here to mark notifications as read in the database
                 }
 
                 if (selectedFragment != null) {
-                    // Replace the fragment in the container
-                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                            selectedFragment).commit();
-                    // Set the title on our custom TextView in the toolbar
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, selectedFragment).commit();
                     toolbarTitle.setText(title);
                 }
                 return true;
             };
 
-    /**
-     * Checks if location permission is granted. If not, it requests it.
-     */
+    private void fetchNotifications() {
+        int userId = sessionManager.getUserId();
+        if (userId == 0) return; // Don't fetch if user is not logged in
+
+        apiService.getNotifications(userId).enqueue(new Callback<NotificationsResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<NotificationsResponse> call, @NonNull Response<NotificationsResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Notification> notifications = response.body().getData();
+                    if (notifications != null && !notifications.isEmpty()) {
+                        showNotificationBadge(notifications.size());
+                    } else {
+                        removeNotificationBadge();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<NotificationsResponse> call, @NonNull Throwable t) {
+                Log.e("MainActivity", "Failed to fetch notifications: " + t.getMessage());
+            }
+        });
+    }
+
+    private void showNotificationBadge(int count) {
+        BadgeDrawable badge = bottomNav.getOrCreateBadge(R.id.nav_alerts);
+        badge.setVisible(true);
+        badge.setNumber(count);
+    }
+
+    private void removeNotificationBadge() {
+        bottomNav.removeBadge(R.id.nav_alerts);
+    }
+
     private void checkAndRequestLocationPermission() {
         String permission = Manifest.permission.ACCESS_FINE_LOCATION;
-
         if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-            // Check if we should show a rationale (explanation) to the user
             if (shouldShowRequestPermissionRationale(permission)) {
                 new MaterialAlertDialogBuilder(this)
                         .setTitle("Permission Needed")
@@ -156,10 +202,8 @@ public class MainActivity extends AppCompatActivity {
                         .create()
                         .show();
             } else {
-                // No explanation needed, just request the permission
                 requestPermissionLauncher.launch(permission);
             }
         }
-        // If permission is already granted, do nothing.
     }
 }
