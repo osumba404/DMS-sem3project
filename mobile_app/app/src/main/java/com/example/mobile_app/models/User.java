@@ -35,6 +35,16 @@ public class User {
         this.password = password;
     }
 
+
+    // --- CONSTRUCTOR FOR SESSION MANAGEMENT ---
+    public User(int id, String fullName) {
+        this.id = id;
+        this.fullName = fullName;
+    }
+
+    // Getters
+
+
     // Getters
     public int getId() {
         return id;

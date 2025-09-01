@@ -16,6 +16,10 @@ public class DisasterAlert {
 
     @SerializedName("status")
     private String status;
+    @SerializedName("affected_area")
+    private String affectedArea; // WKT String
+
+
 
     // Getters
     public int getId() {
@@ -32,5 +36,10 @@ public class DisasterAlert {
 
     public String getStatus() {
         return status;
+    }
+
+    public String getAffectedArea()
+    {
+        return affectedArea;
     }
 }

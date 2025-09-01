@@ -2,7 +2,6 @@ package com.example.mobile_app.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-
 import com.example.mobile_app.models.User;
 
 public class SessionManager {
@@ -47,6 +46,11 @@ public class SessionManager {
 
     public String getFullName() {
         return pref.getString(KEY_FULL_NAME, null);
+    }
+
+    public void updateFullName(String newFullName) {
+        editor.putString(KEY_FULL_NAME, newFullName);
+        editor.commit();
     }
 
     /**

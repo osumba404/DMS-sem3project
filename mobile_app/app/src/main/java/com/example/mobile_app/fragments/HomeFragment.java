@@ -81,8 +81,44 @@ public class HomeFragment extends Fragment {
         recyclerView.setAdapter(adapter);
     }
 
+    // Inside HomeFragment.java
+
     private void fetchActiveAlerts() {
-        // ... (This method remains the same as before)
+        progressBar.setVisibility(View.VISIBLE);
+        tvNoAlerts.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.GONE);
+
+        apiService.getActiveAlerts().enqueue(new Callback<AlertsResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<AlertsResponse> call, @NonNull Response<AlertsResponse> response) {
+
+                progressBar.setVisibility(View.GONE);
+                if (response.isSuccessful() && response.body() != null) {
+                    List<DisasterAlert> alerts = response.body().getData();
+                    if (alerts != null && !alerts.isEmpty()) {
+                        recyclerView.setVisibility(View.VISIBLE);
+                        alertList.clear();
+                        alertList.addAll(alerts);
+                        adapter.notifyDataSetChanged();
+                    } else {
+                        tvNoAlerts.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    tvNoAlerts.setVisibility(View.VISIBLE);
+                    Toast.makeText(getContext(), "Failed to fetch alerts", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<AlertsResponse> call, @NonNull Throwable t) {
+
+                progressBar.setVisibility(View.GONE);
+                // Also show the "no alerts" message as a fallback state.
+                tvNoAlerts.setVisibility(View.VISIBLE);
+                Toast.makeText(getContext(), "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("HomeFragment", "Network Error fetching alerts", t); // Add logging for details
+            }
+        });
     }
 
     // --- THIS IS THE NEW, FULLY FUNCTIONAL METHOD ---

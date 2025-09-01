@@ -8,7 +8,12 @@ import com.example.mobile_app.models.SheltersResponse;
 import com.example.mobile_app.models.SimpleResponse;
 import com.example.mobile_app.models.User;
 import com.example.mobile_app.models.UserSearchResponse;
+import com.example.mobile_app.models.MapDataResponse;
 import com.example.mobile_app.models.BroadcastResponse;
+import com.example.mobile_app.models.ProfileResponse;
+import com.example.mobile_app.models.SimpleResponse;
+import com.example.mobile_app.network.UpdateProfileRequest;
+import com.example.mobile_app.models.weather.WeatherResponse;
 
 import com.example.mobile_app.models.UnifiedAlertsResponse;
 
@@ -22,7 +27,11 @@ import retrofit2.http.FormUrlEncoded;
 
 public interface ApiService {
 
-    // These two endpoints return a User object inside the 'data' field
+    @GET("users/get_map_data.php")
+    Call<MapDataResponse> getMapData(
+            @Query("lat") double latitude,
+            @Query("lon") double longitude
+    );
     @POST("users/register.php")
     Call<AuthResponse> registerUser(@Body User user);
 
@@ -37,11 +46,11 @@ public interface ApiService {
     @POST("users/mark_safe.php")
     Call<SimpleResponse> markUserSafe(@Body MarkSafeRequest request);
 
-    @GET("shelters/get_nearby_shelters.php")
-    Call<SheltersResponse> getNearbyShelters(
-            @Query("lat") double latitude,
-            @Query("lon") double longitude
-    );
+//    @GET("shelters/get_nearby_shelters.php")
+//    Call<SheltersResponse> getNearbyShelters(
+//            @Query("lat") double latitude,
+//            @Query("lon") double longitude
+//    );
     @GET("users/get_contacts.php")
     Call<ContactsResponse> getEmergencyContacts(@Query("user_id") int userId);
 
@@ -89,4 +98,18 @@ public interface ApiService {
 
     @GET("users/get_unified_alerts.php")
     Call<UnifiedAlertsResponse> getUnifiedAlerts(@Query("user_id") int userId);
+
+
+    // Endpoints for Profile ---
+    @GET("users/get_user_profile.php")
+    Call<ProfileResponse> getUserProfile(@Query("user_id") int userId);
+
+    @POST("users/update_user_profile.php")
+    Call<SimpleResponse> updateUserProfile(@Body UpdateProfileRequest request);
+
+    @GET("weather/get_weather_data.php")
+    Call<WeatherResponse> getWeatherData(
+            @Query("lat") double latitude,
+            @Query("lon") double longitude
+    );
 }

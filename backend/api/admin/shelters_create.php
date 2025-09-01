@@ -1,8 +1,9 @@
 <?php
 /**
- * Form Processing Script for Creating a Shelter
+ * Form Processing Script for Creating a Shelter (Updated)
  *
  * Receives data from a standard HTML POST form.
+ * Assembles supply data into JSON.
  * Inserts data into the database and redirects the user.
  */
 
@@ -13,59 +14,56 @@ error_reporting(E_ALL);
 // The path to the db_connect file is three levels up from here.
 require_once '../../config/db_connect.php'; 
 
-// --- Main Logic ---
-
-// 1. Check if the form was submitted using the POST method.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit('Access Denied. Please submit the form.');
 }
 
-// 2. Get data directly from the $_POST superglobal array.
+// 1. Get standard data directly from the $_POST array.
 $name = $_POST['name'] ?? null;
 $latitude = $_POST['latitude'] ?? null;
 $longitude = $_POST['longitude'] ?? null;
 $capacity = $_POST['capacity'] ?? null;
-$supplies_json = $_POST['available_supplies'] ?? null;
 
-// 3. Simple validation.
+// 2. Get individual supply data.
+$food_packs = $_POST['food_packs'] ?? 0;
+$water_liters = $_POST['water_liters'] ?? 0;
+$first_aid_kits = $_POST['first_aid_kits'] ?? 0;
+
+// Validation
 if (empty($name) || empty($latitude) || empty($longitude) || empty($capacity)) {
-    // Redirect back to the shelters page with an error message.
     header("Location: ../../admin_portal/index.php?page=shelters&status=error&msg=missingfields");
     exit();
 }
 
-// Validate that the supplies field contains valid JSON.
-json_decode($supplies_json);
-if (json_last_error() !== JSON_ERROR_NONE) {
-    header("Location: ../../admin_portal/index.php?page=shelters&status=error&msg=invalidjson");
-    exit();
-}
+// 3. --- THE KEY CHANGE: Assemble supplies into a PHP array ---
+$supplies_array = [
+    'food_packs' => (int)$food_packs,
+    'water_liters' => (int)$water_liters,
+    'first_aid_kits' => (int)$first_aid_kits
+];
 
-// 4. The SQL INSERT statement.
-// We use the POINT() function to convert latitude and longitude into a GEOMETRY data type.
+// 4. --- Convert the PHP array into a JSON string ---
+$supplies_json = json_encode($supplies_array);
+
+// 5. The SQL INSERT statement.
 $sql = "INSERT INTO shelters (name, location, capacity, available_supplies, status) 
         VALUES (?, POINT(?, ?), ?, ?, 'Open')";
 
 $stmt = $conn->prepare($sql);
 if ($stmt === false) {
-    // If prepare() fails, there's likely an SQL syntax error.
     exit("SQL Error: " . $conn->error);
 }
 
-// Note: MySQL's POINT() function takes longitude first, then latitude.
+// Bind parameters, including the new JSON string.
 $stmt->bind_param("sddis", $name, $longitude, $latitude, $capacity, $supplies_json);
 
-// 5. Execute the query and redirect based on the result.
+// 6. Execute and redirect.
 if ($stmt->execute()) {
-    // SUCCESS: Redirect back to the shelters page with a success flag.
     header("Location: ../../admin_portal/index.php?page=shelters&status=success");
 } else {
-    // FAILURE: Redirect back with an error flag.
-    // For debugging, you can output the error: exit("Database Error: " . $stmt->error);
     header("Location: ../../admin_portal/index.php?page=shelters&status=error&msg=dberror");
 }
 
-// 6. Close the statement and connection.
 $stmt->close();
 $conn->close();
 exit();

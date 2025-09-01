@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
@@ -11,9 +10,14 @@
         android:icon="@android:drawable/ic_menu_mapmode"
         android:title="Map"/>
 
+    <!-- ADD THIS NEW ITEM -->
+    <item
+        android:id="@+id/nav_weather"
+        android:icon="@drawable/ic_weather"
+    android:title="Weather"/>
+
     <item
         android:id="@+id/nav_alerts"
         android:icon="@android:drawable/ic_dialog_alert"
         android:title="Alerts"/>
-
 </menu>

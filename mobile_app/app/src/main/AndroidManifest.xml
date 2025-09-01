@@ -45,6 +45,12 @@
             android:label="Add Contact"
             android:parentActivityName=".activities.EmergencyContactsActivity"/>
 
+        <activity
+            android:name=".activities.ProfileActivity"
+            android:exported="false"
+            android:label="my Profile"
+            android:parentActivityName=".activities.EmergencyContactsActivity"/>
+
     </application>
 
 </manifest>

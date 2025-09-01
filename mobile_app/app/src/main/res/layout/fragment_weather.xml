@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.WeatherFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <ProgressBar
+            android:id="@+id/progress_bar_weather"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+
+        <LinearLayout
+            android:id="@+id/weather_content_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Current Conditions -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tv_location_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        tools:text="Nairobi, KE"/>
+
+                    <TextView
+                        android:id="@+id/tv_temperature"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="48sp"
+                        android:textStyle="bold"
+                        tools:text="25°C"/>
+
+                    <TextView
+                        android:id="@+id/tv_weather_description"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="18sp"
+                        tools:text="Broken Clouds"/>
+
+                    <!-- More details grid -->
+                    <GridLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:columnCount="2"
+                        android:rowCount="3"
+                        android:layout_marginTop="16dp">
+
+                        <TextView android:id="@+id/tv_humidity" tools:text="Humidity: 80%" style="@style/WeatherDetailText"/>
+                        <TextView android:id="@+id/tv_pressure" tools:text="Pressure: 1012 hPa" style="@style/WeatherDetailText"/>
+                        <TextView android:id="@+id/tv_visibility" tools:text="Visibility: 10km" style="@style/WeatherDetailText"/>
+                        <TextView android:id="@+id/tv_uv_index" tools:text="UV Index: 5 (Moderate)" style="@style/WeatherDetailText"/>
+                        <TextView android:id="@+id/tv_sunrise" tools:text="Sunrise: 06:30 AM" style="@style/WeatherDetailText"/>
+                        <TextView android:id="@+id/tv_sunset" tools:text="Sunset: 06:45 PM" style="@style/WeatherDetailText"/>
+                    </GridLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Hourly Forecasts -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hourly Forecast"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp"/>
+
+            <TextView
+                android:id="@+id/tv_adverse_weather_warning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/accent_danger"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="Adverse Weather Alert: Heavy rain expected around 8 PM."/>
+
+            <!-- We will use a simple TextView for the hourly forecast for now -->
+            <TextView
+                android:id="@+id/tv_hourly_forecast"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="8dp"
+                tools:text="Now: 25°C\n4 hours: 22°C\n8 hours: 20°C"/>
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

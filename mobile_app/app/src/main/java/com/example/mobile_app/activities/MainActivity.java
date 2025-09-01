@@ -22,6 +22,7 @@ import com.example.mobile_app.R;
 import com.example.mobile_app.fragments.AlertsFragment;
 import com.example.mobile_app.fragments.HomeFragment;
 import com.example.mobile_app.fragments.MapViewFragment;
+import com.example.mobile_app.fragments.WeatherFragment;
 import com.example.mobile_app.models.Notification;
 import com.example.mobile_app.models.NotificationsResponse;
 import com.example.mobile_app.network.ApiClient;
@@ -107,6 +108,8 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
@@ -115,17 +118,12 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, EmergencyContactsActivity.class));
             return true;
         } else if (itemId == R.id.menu_profile) {
-            Toast.makeText(this, "Profile screen coming soon!", Toast.LENGTH_SHORT).show();
+            // THE FIX: Open the real ProfileActivity
+            startActivity(new Intent(this, ProfileActivity.class));
             return true;
         } else if (itemId == R.id.menu_logout) {
-            sessionManager.logoutUser();
-            Intent intent = new Intent(this, AuthActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            finish();
-            return true;
+            // ... (logout logic)
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -141,7 +139,11 @@ public class MainActivity extends AppCompatActivity {
                 } else if (itemId == R.id.nav_map) {
                     selectedFragment = new MapViewFragment();
                     title = "Map";
-                } else if (itemId == R.id.nav_alerts) {
+                }   else if (itemId == R.id.nav_weather) {
+                    selectedFragment = new WeatherFragment();
+                    title = "Weather Forecast";
+                }
+                else if (itemId == R.id.nav_alerts) {
                     selectedFragment = new AlertsFragment();
                     title = "Alerts";
                     // When user clicks the Alerts tab, remove the badge
@@ -206,4 +208,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+
 }
