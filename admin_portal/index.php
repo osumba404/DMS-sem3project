@@ -20,25 +20,43 @@ if (!in_array($page, $allowed_pages)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Portal - Disaster Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
     <div class="admin-wrapper">
-        <!-- Sidebar Navigation -->
+        <!-- Premium Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h3>DMS Admin</h3>
+                <h3>🌪️ DMS Admin</h3>
+                <p>Disaster Management System</p>
             </div>
             <nav class="sidebar-nav">
                 <ul>
-                    <!-- The links now point to index.php with a ?page= parameter -->
-                    <li><a href="index.php?page=dashboard" class="<?php echo ($page === 'dashboard') ? 'active' : ''; ?>">Dashboard</a></li>
-                    <li><a href="index.php?page=disasters" class="<?php echo ($page === 'disasters') ? 'active' : ''; ?>">Disasters</a></li>
-                    <li><a href="index.php?page=shelters" class="<?php echo ($page === 'shelters') ? 'active' : ''; ?>">Shelters</a></li>
-                    <li><a href="index.php?page=responders" class="<?php echo ($page === 'responders') ? 'active' : ''; ?>">Responders</a></li>
-                    <li><a href="index.php?page=users" class="<?php echo ($page === 'users') ? 'active' : ''; ?>">Public Users</a></li>
-                    <li><a href="index.php?page=broadcast" class="<?php echo ($page === 'broadcast') ? 'active' : ''; ?>">Broadcast Message</a></li>
-                    <li><a href="index.php?page=reports" class="<?php echo ($page === 'reports') ? 'active' : ''; ?>">Reports</a></li>
+                    <li><a href="index.php?page=dashboard" class="<?php echo ($page === 'dashboard') ? 'active' : ''; ?>">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a></li>
+                    <li><a href="index.php?page=disasters" class="<?php echo ($page === 'disasters') ? 'active' : ''; ?>">
+                        <i class="fas fa-exclamation-triangle"></i> Disasters
+                    </a></li>
+                    <li><a href="#" onclick="loadPage('shelters.php')">
+                        <i class="fas fa-home"></i> Shelters
+                    </a></li>
+                    <li><a href="#" onclick="loadPage('responders.php')">
+                        <i class="fas fa-users"></i> Responders
+                    </a></li>
+                    <li><a href="#" onclick="loadPage('reports.php')">
+                        <i class="fas fa-file-alt"></i> Reports
+                    </a></li>
+                    <li><a href="#" onclick="loadPage('broadcast.php')">
+                        <i class="fas fa-bullhorn"></i> Broadcast
+                    </a></li>
+                    <li><a href="index.php?page=users" class="<?php echo ($page === 'users') ? 'active' : ''; ?>">
+                        <i class="fas fa-users"></i> Public Users
+                    </a></li>
                 </ul>
             </nav>
         </aside>
@@ -47,7 +65,9 @@ if (!in_array($page, $allowed_pages)) {
         <main class="main-content">
             <header class="main-header">
                 <h1>Welcome, <?php echo htmlspecialchars($_SESSION['admin_name']); ?></h1>
-                <a href="logout.php" class="logout-btn">Logout</a>
+                <a href="logout.php" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
             </header>
             
             <div id="content-loader">
@@ -60,8 +80,23 @@ if (!in_array($page, $allowed_pages)) {
         </main>
     </div>
 
-    <!-- We no longer need the JavaScript for page loading, but we can keep it for modals later -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- <script src="assets/js/script.js"></script> --> <!-- Commented out for now -->
+    <script>
+        // Enhanced admin portal interactions
+        $(document).ready(function() {
+            // Smooth transitions for sidebar links
+            $('.sidebar-nav a').on('click', function(e) {
+                if (!$(this).hasClass('active')) {
+                    $('.sidebar-nav a').removeClass('active');
+                    $(this).addClass('active');
+                }
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+        });
+    </script>
 </body>
 </html>

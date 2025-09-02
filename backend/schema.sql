@@ -85,7 +85,7 @@ CREATE TABLE `responders` (
 CREATE TABLE `disasters` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
-  `type` ENUM('Flood', 'Earthquake', 'Hurricane', 'Wildfire', 'Tsunami', 'Other') NOT NULL,
+  `type` ENUM('Flood', 'Earthquake', 'Hurricane', 'Wildfire', 'Tsunami', 'Tornado', 'Volcanic Eruption', 'Landslide', 'Severe Storm', 'Industrial Accident', 'Drought',  'Pandemic', 'Extreme Heat', 'Chemical Spill','Other') NOT NULL,
   `status` ENUM('Prepare', 'Evacuate', 'All Clear', 'Inactive') DEFAULT 'Inactive',
   `affected_area_geometry` GEOMETRY NOT NULL,
   `created_by_admin_id` INT NOT NULL,
@@ -221,7 +221,12 @@ CREATE TABLE `shelter_updates` (
   FOREIGN KEY (`responder_id`) REFERENCES `responders`(`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `notifications`
+-- Description: Logs all notifications sent to users.
+--
 
 CREATE TABLE `notifications` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -233,4 +238,32 @@ CREATE TABLE `notifications` (
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`recipient_user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`sender_user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_reports`
+-- Description: Reports submitted by mobile app users about incidents, hazards, or observations
+--
+
+CREATE TABLE `user_reports` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
+  `description` TEXT NOT NULL,
+  `category` ENUM('Incident', 'Hazard', 'Infrastructure', 'Safety', 'Other') NOT NULL,
+  `priority` ENUM('Low', 'Medium', 'High', 'Critical') DEFAULT 'Medium',
+  `status` ENUM('Submitted', 'Under Review', 'Investigating', 'Resolved', 'Closed') DEFAULT 'Submitted',
+  `location` POINT,
+  `latitude` DECIMAL(10, 8),
+  `longitude` DECIMAL(11, 8),
+  `address` VARCHAR(500),
+  `image_url` VARCHAR(500),
+  `admin_notes` TEXT,
+  `reviewed_by_admin_id` INT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`reviewed_by_admin_id`) REFERENCES `admins`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

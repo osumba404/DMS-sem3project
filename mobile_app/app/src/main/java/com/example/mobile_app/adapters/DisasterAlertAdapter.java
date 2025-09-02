@@ -32,8 +32,21 @@ public class DisasterAlertAdapter extends RecyclerView.Adapter<DisasterAlertAdap
     public void onBindViewHolder(@NonNull AlertViewHolder holder, int position) {
         DisasterAlert alert = alertList.get(position);
         holder.name.setText(alert.getName());
-        holder.type.setText("Type: " + alert.getType());
-        holder.status.setText("Status: " + alert.getStatus());
+        holder.type.setText("🌪️ " + alert.getType());
+        holder.status.setText("⚠️ " + alert.getStatus());
+        
+        // Set location and timestamp from API data
+        if (alert.getLocation() != null && !alert.getLocation().isEmpty()) {
+            holder.location.setText("📍 " + alert.getLocation());
+        } else {
+            holder.location.setText("📍 Location unavailable");
+        }
+        
+        if (alert.getRelativeTime() != null && !alert.getRelativeTime().isEmpty()) {
+            holder.timestamp.setText("🕒 " + alert.getRelativeTime());
+        } else {
+            holder.timestamp.setText("🕒 Time unavailable");
+        }
     }
 
     @Override
@@ -42,13 +55,15 @@ public class DisasterAlertAdapter extends RecyclerView.Adapter<DisasterAlertAdap
     }
 
     static class AlertViewHolder extends RecyclerView.ViewHolder {
-        TextView name, type, status;
+        TextView name, type, status, location, timestamp;
 
         public AlertViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.tv_disaster_name);
             type = itemView.findViewById(R.id.tv_disaster_type);
             status = itemView.findViewById(R.id.tv_disaster_status);
+            location = itemView.findViewById(R.id.tv_disaster_location);
+            timestamp = itemView.findViewById(R.id.tv_disaster_timestamp);
         }
     }
 }

@@ -1,17 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Theme Colors -->
-    <color name="primary_dark">#00579B</color> <!-- A deep, trustworthy blue for the toolbar -->
-    <color name="primary">#007AC1</color> <!-- A slightly lighter blue for primary elements -->
-    <color name="primary_light">#67DAFF</color> <!-- A light accent blue -->
-
-    <!-- Accent / Action Colors -->
-    <color name="accent_safe">#2E7D32</color> <!-- A reassuring green for "safe" actions -->
-    <color name="accent_warning">#FFA000</color> <!-- A standard amber for warnings -->
-    <color name="accent_danger">#D32F2F</color> <!-- A clear red for danger/alerts -->
-
-    <!-- Standard UI Colors -->
+    <!-- Premium Primary Colors - Deep Ocean Blue Theme -->
+    <color name="primary_dark">#0D47A1</color>
+    <color name="primary">#1565C0</color>
+    <color name="primary_light">#42A5F5</color>
+    <color name="primary_variant">#1E88E5</color>
+    
+    <!-- Surface and Background Colors -->
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#F8FAFB</color>
+    <color name="background">#F5F7FA</color>
+    <color name="background_secondary">#E3F2FD</color>
+    
+    <!-- Text Colors -->
+    <color name="on_primary">#FFFFFF</color>
+    <color name="on_surface">#1A1A1A</color>
+    <color name="on_surface_variant">#5F6368</color>
+    <color name="on_background">#212121</color>
+    
+    <!-- Enhanced Accent Colors for Better Visibility -->
+    <color name="accent_safe">#00C853</color>
+    <color name="accent_safe_light">#C8E6C9</color>
+    <color name="accent_safe_dark">#2E7D32</color>
+    <color name="accent_warning">#FF8F00</color>
+    <color name="accent_warning_light">#FFF3E0</color>
+    <color name="accent_warning_dark">#E65100</color>
+    <color name="accent_danger">#D32F2F</color>
+    <color name="accent_danger_light">#FFEBEE</color>
+    <color name="accent_danger_dark">#B71C1C</color>
+    
+    <!-- Premium Gradient Colors -->
+    <color name="gradient_start">#1565C0</color>
+    <color name="gradient_end">#0D47A1</color>
+    <color name="gradient_accent_start">#42A5F5</color>
+    <color name="gradient_accent_end">#1E88E5</color>
+    
+    <!-- Neutral Colors -->
+    <color name="neutral_50">#FAFAFA</color>
+    <color name="neutral_100">#F5F5F5</color>
+    <color name="neutral_200">#EEEEEE</color>
+    <color name="neutral_300">#E0E0E0</color>
+    <color name="neutral_400">#BDBDBD</color>
+    <color name="neutral_500">#9E9E9E</color>
+    <color name="neutral_600">#757575</color>
+    <color name="neutral_700">#616161</color>
+    <color name="neutral_800">#424242</color>
+    <color name="neutral_900">#212121</color>
+    
+    <!-- Standard Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="light_gray">#F5F5F5</color> <!-- A light background color -->
+    <color name="transparent">#00000000</color>
+    
+    <!-- Shadow and Elevation -->
+    <color name="shadow_light">#1A000000</color>
+    <color name="shadow_medium">#33000000</color>
+    <color name="divider">#E0E0E0</color>
+    
+    <!-- Status Colors with Better Contrast -->
+    <color name="success">#2E7D32</color>
+    <color name="success_container">#C8E6C9</color>
+    <color name="info">#1976D2</color>
+    <color name="info_container">#E3F2FD</color>
+    <color name="warning">#F57C00</color>
+    <color name="warning_container">#FFF3E0</color>
+    <color name="error">#D32F2F</color>
+    <color name="error_container">#FFEBEE</color>
 </resources>

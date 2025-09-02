@@ -25,6 +25,36 @@ function send_response($status, $message, $data = null) {
     exit();
 }
 
+// --- Helper function to get location name from coordinates ---
+function getLocationFromCoordinates($geometryText) {
+    // Extract coordinates from POLYGON or POINT geometry
+    // For now, return a placeholder - you can implement reverse geocoding here
+    if (strpos($geometryText, 'POLYGON') !== false) {
+        // Extract first coordinate pair from polygon
+        preg_match('/POLYGON\(\(([^)]+)\)\)/', $geometryText, $matches);
+        if (isset($matches[1])) {
+            $coords = explode(',', $matches[1]);
+            $firstCoord = trim($coords[0]);
+            $latLng = explode(' ', $firstCoord);
+            // For demo purposes, return sample locations based on coordinates
+            return "Tassia - Embakasi, Nairobi"; // You can implement actual reverse geocoding here
+        }
+    }
+    return "Location unavailable";
+}
+
+// --- Helper function to format relative time ---
+function getRelativeTime($datetime) {
+    $time = time() - strtotime($datetime);
+    
+    if ($time < 60) return 'Just now';
+    if ($time < 3600) return floor($time/60) . ' minutes ago';
+    if ($time < 86400) return floor($time/3600) . ' hours ago';
+    if ($time < 2592000) return floor($time/86400) . ' days ago';
+    if ($time < 31536000) return floor($time/2592000) . ' months ago';
+    return floor($time/31536000) . ' years ago';
+}
+
 // --- Main Logic ---
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
@@ -46,20 +76,16 @@ $result = $conn->query($query);
 
 if ($result) {
     $alerts = [];
-    // fetch_assoc() returns an associative array for each row
     while ($row = $result->fetch_assoc()) {
-        // We explicitly add each row to our array.
-        // This ensures $alerts is always a numerically indexed array.
+        // Add location and relative time to each alert
+        $row['location'] = getLocationFromCoordinates($row['affected_area']);
+        $row['relative_time'] = getRelativeTime($row['created_at']);
         $alerts[] = $row;
     }
     
-    // THE FIX: We pass the $alerts array directly as the data.
-    // json_encode will now correctly convert an empty PHP array []
-    // into an empty JSON array [], and a populated one into [{...}, {...}].
     send_response(200, 'Active disaster alerts fetched successfully.', $alerts);
 
 } else {
-    // Handle potential query errors
     send_response(500, 'Internal Server Error. Could not fetch alerts.');
 }
 

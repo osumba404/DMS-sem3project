@@ -14,7 +14,7 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 // The path to the db_connect file from this script's location
-require_once '../../../config/db_connect.php'; 
+require_once '../../config/db_connect.php'; 
 
 // --- Main Logic ---
 

@@ -1,42 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="8dp"
     android:layout_marginVertical="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:strokeWidth="0dp"
+    android:foreground="?attr/selectableItemBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:orientation="horizontal"
+        android:padding="12dp">
 
-        <TextView
-            android:id="@+id/tv_disaster_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Disaster Name"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+        <!-- Alert Icon -->
+        <LinearLayout
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/card_background"
+            android:backgroundTint="?attr/colorErrorContainer"
+            android:gravity="center"
+            android:layout_marginEnd="12dp">
 
-        <TextView
-            android:id="@+id/tv_disaster_type"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Type: Flood" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🚨"
+                android:textSize="16sp" />
 
-        <TextView
-            android:id="@+id/tv_disaster_status"
-            android:layout_width="wrap_content"
+        </LinearLayout>
+
+        <!-- Alert Content -->
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Status: Evacuate"
-            android:textColor="@android:color/holo_red_dark"
-            android:textStyle="bold" />
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_disaster_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Disaster Name"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_marginBottom="2dp" />
+
+            <TextView
+                android:id="@+id/tv_disaster_type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Type: Flood"
+                android:textSize="13sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tv_disaster_location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📍 Tassia - Embakasi, Nairobi"
+                android:textSize="12sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tv_disaster_timestamp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🕒 2 hours ago"
+                android:textSize="11sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:id="@+id/tv_disaster_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Status: Evacuate"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnErrorContainer"
+                android:background="@drawable/weather_detail_background"
+                android:backgroundTint="?attr/colorErrorContainer"
+                android:padding="6dp" />
+
+        </LinearLayout>
+
+        <!-- Priority Indicator -->
+        <View
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:background="?attr/colorError"
+            android:layout_marginStart="8dp" />
+
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

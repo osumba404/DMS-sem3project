@@ -22,6 +22,7 @@ import com.example.mobile_app.R;
 import com.example.mobile_app.fragments.AlertsFragment;
 import com.example.mobile_app.fragments.HomeFragment;
 import com.example.mobile_app.fragments.MapViewFragment;
+import com.example.mobile_app.fragments.ReportsFragment;
 import com.example.mobile_app.fragments.WeatherFragment;
 import com.example.mobile_app.models.Notification;
 import com.example.mobile_app.models.NotificationsResponse;
@@ -149,6 +150,9 @@ public class MainActivity extends AppCompatActivity {
                     // When user clicks the Alerts tab, remove the badge
                     removeNotificationBadge();
                     // TODO: Call an API here to mark notifications as read in the database
+                } else if (itemId == R.id.nav_reports) {
+                    selectedFragment = new ReportsFragment();
+                    title = "Reports";
                 }
 
                 if (selectedFragment != null) {
@@ -208,6 +212,4 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-
 }

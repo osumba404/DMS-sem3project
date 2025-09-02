@@ -33,6 +33,7 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
+
         <activity
             android:name=".activities.EmergencyContactsActivity"
             android:exported="false"
@@ -50,6 +51,18 @@
             android:exported="false"
             android:label="my Profile"
             android:parentActivityName=".activities.EmergencyContactsActivity"/>
+
+        <activity
+            android:name=".activities.SubmitReportActivity"
+            android:exported="false"
+            android:label="Submit Report"
+            android:parentActivityName=".activities.MainActivity"/>
+
+        <activity
+            android:name=".activities.ReportDetailActivity"
+            android:exported="false"
+            android:label="Report Details"
+            android:parentActivityName=".activities.MainActivity"/>
 
     </application>
 

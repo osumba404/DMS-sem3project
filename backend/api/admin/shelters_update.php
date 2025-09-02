@@ -10,8 +10,14 @@
  * - name
  * - capacity
  * - status ('Open', 'Full', 'Closed')
+ * - latitude
+ * - longitude
+ * - supplies
  */
  
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 header('Content-Type: application/json');
 require_once '../../config/db_connect.php';
 
@@ -23,6 +29,10 @@ function send_response($status, $message) {
 
 // Admin authorization check...
 
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     send_response(405, 'Method Not Allowed.');
 }
@@ -33,22 +43,26 @@ $shelter_id = $data['shelter_id'] ?? null;
 $name = $data['name'] ?? null;
 $capacity = $data['capacity'] ?? null;
 $status = $data['status'] ?? null;
+$latitude = $data['latitude'] ?? null;
+$longitude = $data['longitude'] ?? null;
+$supplies = $data['supplies'] ?? null;
 
 if (empty($shelter_id) || empty($name) || empty($capacity) || empty($status)) {
     send_response(400, 'Bad Request. shelter_id, name, capacity, and status are required.');
 }
 
-$stmt = $conn->prepare("UPDATE shelters SET name = ?, capacity = ?, status = ? WHERE id = ?");
-$stmt->bind_param("sisi", $name, $capacity, $status, $shelter_id);
-
-if ($stmt->execute()) {
+try {
+    $stmt = $conn->prepare("UPDATE shelters SET name = ?, capacity = ?, status = ?, latitude = ?, longitude = ?, supplies = ? WHERE id = ?");
+    $stmt->bind_param("sissis", $name, $capacity, $status, $latitude, $longitude, $supplies, $shelter_id);
+    $stmt->execute();
+    
     if ($stmt->affected_rows > 0) {
         send_response(200, 'Shelter updated successfully.');
     } else {
-        send_response(404, 'Shelter not found or data is unchanged.');
+        send_response(404, 'Shelter not found or no changes made');
     }
-} else {
-    send_response(500, 'Internal Server Error. Failed to update shelter.');
+} catch (Exception $e) {
+    send_response(500, 'Internal Server Error. Failed to update shelter: ' . $e->getMessage());
 }
 
 $stmt->close();

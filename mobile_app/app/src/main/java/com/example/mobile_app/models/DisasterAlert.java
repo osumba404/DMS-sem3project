@@ -16,10 +16,18 @@ public class DisasterAlert {
 
     @SerializedName("status")
     private String status;
+    
     @SerializedName("affected_area")
     private String affectedArea; // WKT String
-
-
+    
+    @SerializedName("created_at")
+    private String createdAt;
+    
+    @SerializedName("location")
+    private String location;
+    
+    @SerializedName("relative_time")
+    private String relativeTime;
 
     // Getters
     public int getId() {
@@ -38,8 +46,19 @@ public class DisasterAlert {
         return status;
     }
 
-    public String getAffectedArea()
-    {
+    public String getAffectedArea() {
         return affectedArea;
+    }
+    
+    public String getCreatedAt() {
+        return createdAt;
+    }
+    
+    public String getLocation() {
+        return location;
+    }
+    
+    public String getRelativeTime() {
+        return relativeTime;
     }
 }

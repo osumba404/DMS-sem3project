@@ -14,6 +14,8 @@ import com.example.mobile_app.models.ProfileResponse;
 import com.example.mobile_app.models.SimpleResponse;
 import com.example.mobile_app.network.UpdateProfileRequest;
 import com.example.mobile_app.models.weather.WeatherResponse;
+import com.example.mobile_app.models.UserReport;
+import com.example.mobile_app.models.UserReportResponse;
 
 import com.example.mobile_app.models.UnifiedAlertsResponse;
 
@@ -112,4 +114,14 @@ public interface ApiService {
             @Query("lat") double latitude,
             @Query("lon") double longitude
     );
+
+    // Reports endpoints
+    @GET("reports/get_all.php")
+    Call<UserReportResponse> getUserReports(@Query("user_id") int userId);
+
+    @GET("reports/get_single.php")
+    Call<UserReportResponse> getReportById(@Query("id") int reportId);
+
+    @POST("reports/create.php")
+    Call<UserReportResponse> submitReport(@Body UserReport report);
 }
