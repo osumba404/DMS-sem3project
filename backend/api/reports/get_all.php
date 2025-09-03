@@ -15,32 +15,36 @@ try {
     
     if ($user_id) {
         // Get reports for specific user
-        $stmt = $pdo->prepare("
+        $sql = "
             SELECT ur.*, u.full_name as reporter_name, u.email as reporter_email 
             FROM user_reports ur 
             JOIN users u ON ur.user_id = u.id 
             WHERE ur.user_id = ? 
             ORDER BY ur.created_at DESC
-        ");
-        $stmt->execute([$user_id]);
+        ";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
     } else {
         // Get all reports (for admin)
-        $stmt = $pdo->prepare("
+        $sql = "
             SELECT ur.*, u.full_name as reporter_name, u.email as reporter_email,
                    a.full_name as reviewed_by_name
             FROM user_reports ur 
             JOIN users u ON ur.user_id = u.id 
             LEFT JOIN admins a ON ur.reviewed_by_admin_id = a.id
             ORDER BY ur.created_at DESC
-        ");
+        ";
+        $stmt = $conn->prepare($sql);
         $stmt->execute();
+        $result = $stmt->get_result();
     }
     
-    $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Add relative time for each report
-    foreach ($reports as &$report) {
-        $report['relative_time'] = getRelativeTime($report['created_at']);
+    $reports = [];
+    while ($row = $result->fetch_assoc()) {
+        $row['relative_time'] = getRelativeTime($row['created_at']);
+        $reports[] = $row;
     }
     
     echo json_encode([

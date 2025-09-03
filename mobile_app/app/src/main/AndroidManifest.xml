@@ -61,8 +61,14 @@
         <activity
             android:name=".activities.ReportDetailActivity"
             android:exported="false"
-            android:label="Report Details"
-            android:parentActivityName=".activities.MainActivity"/>
+            android:parentActivityName=".activities.MainActivity"
+            android:theme="@style/Theme.Mobile_app" />
+
+        <activity
+            android:name=".activities.MapActivity"
+            android:exported="false"
+            android:parentActivityName=".activities.MainActivity"
+            android:theme="@style/Theme.Mobile_app" />
 
     </application>
 

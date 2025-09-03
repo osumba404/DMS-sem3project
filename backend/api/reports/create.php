@@ -33,17 +33,17 @@ if (empty($user_id) || empty($title) || empty($description)) {
 }
 
 try {
-    $stmt = $pdo->prepare("
-        INSERT INTO user_reports (user_id, title, description, category, priority, latitude, longitude, address, image_url) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ");
+    $sql = "INSERT INTO user_reports (user_id, title, description, category, priority, latitude, longitude, address, image_url) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($sql);
     
-    $stmt->execute([
+    $stmt->bind_param("issssddss", 
         $user_id, $title, $description, $category, $priority, 
         $latitude, $longitude, $address, $image_url
-    ]);
+    );
     
-    $report_id = $pdo->lastInsertId();
+    $stmt->execute();
+    $report_id = $conn->insert_id;
     
     echo json_encode([
         'success' => true,

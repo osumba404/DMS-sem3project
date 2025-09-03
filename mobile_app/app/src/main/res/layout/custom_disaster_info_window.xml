@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="280dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="@drawable/rounded_corner_bg">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/primary_dark"
+        android:ellipsize="end"
+        android:maxLines="1"
+        tools:text="Hurricane Warning" />
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="8dp"
+        android:background="#EEEEEE" />
+
+    <!-- Type and Severity -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            android:id="@+id/type"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray"
+            tools:text="Type: Hurricane" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="16dp"
+            android:layout_marginHorizontal="8dp"
+            android:background="#DDDDDD" />
+
+        <TextView
+            android:id="@+id/severity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:text="Severity: High" />
+    </LinearLayout>
+
+    <!-- Date -->
+    <TextView
+        android:id="@+id/date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginBottom="8dp"
+        tools:text="Oct 15, 2023 2:30 PM" />
+
+    <!-- Description -->
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@android:color/darker_gray"
+        android:maxLines="4"
+        android:ellipsize="end"
+        tools:text="A category 4 hurricane is approaching the coastal areas. Evacuation orders have been issued for low-lying areas. Please follow instructions from local authorities." />
+
+    <!-- Action button -->
+    <Button
+        android:id="@+id/btn_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/accent_danger"
+        android:paddingVertical="4dp"
+        android:text="View Details"
+        android:textAllCaps="false"
+        android:textColor="@color/on_primary"
+        android:textSize="12sp" />
+
+</LinearLayout>

@@ -17,6 +17,12 @@ public class DisasterAlert {
     @SerializedName("status")
     private String status;
     
+    @SerializedName("severity")
+    private String severity;
+    
+    @SerializedName("description")
+    private String description;
+    
     @SerializedName("affected_area")
     private String affectedArea; // WKT String
     
@@ -35,30 +41,47 @@ public class DisasterAlert {
     }
 
     public String getName() {
-        return name;
+        return name != null ? name : "";
     }
 
     public String getType() {
-        return type;
+        return type != null ? type : "";
     }
 
     public String getStatus() {
-        return status;
+        return status != null ? status : "";
+    }
+    
+    public String getSeverity() {
+        return severity != null ? severity : "medium"; // Default to medium if not specified
+    }
+    
+    public String getDescription() {
+        return description != null ? description : "";
     }
 
     public String getAffectedArea() {
-        return affectedArea;
+        return affectedArea != null ? affectedArea : "";
     }
     
     public String getCreatedAt() {
-        return createdAt;
+        return createdAt != null ? createdAt : "";
     }
     
     public String getLocation() {
-        return location;
+        return location != null ? location : "";
     }
     
     public String getRelativeTime() {
-        return relativeTime;
+        return relativeTime != null ? relativeTime : "";
+    }
+
+    // Setters (if needed for your use case)
+    public void setSeverity(String severity) {
+        this.severity = severity;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

@@ -32,7 +32,8 @@ public interface ApiService {
     @GET("users/get_map_data.php")
     Call<MapDataResponse> getMapData(
             @Query("lat") double latitude,
-            @Query("lon") double longitude
+            @Query("lon") double longitude,
+            @Query("radius") int radiusInKm
     );
     @POST("users/register.php")
     Call<AuthResponse> registerUser(@Body User user);

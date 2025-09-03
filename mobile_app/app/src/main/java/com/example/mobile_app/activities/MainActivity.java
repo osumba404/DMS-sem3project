@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.mobile_app.R;
+import com.example.mobile_app.activities.MapActivity;
 import com.example.mobile_app.fragments.AlertsFragment;
 import com.example.mobile_app.fragments.HomeFragment;
 import com.example.mobile_app.fragments.MapViewFragment;

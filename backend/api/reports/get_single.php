@@ -18,16 +18,19 @@ try {
 
     $report_id = intval($_GET['id']);
     
-    $stmt = $pdo->prepare("
+    $sql = "
         SELECT ur.*, u.full_name as reporter_name, u.email as reporter_email, u.phone_number as reporter_phone,
                a.full_name as reviewed_by_name
         FROM user_reports ur 
         JOIN users u ON ur.user_id = u.id 
         LEFT JOIN admins a ON ur.reviewed_by_admin_id = a.id
         WHERE ur.id = ?
-    ");
-    $stmt->execute([$report_id]);
-    $report = $stmt->fetch(PDO::FETCH_ASSOC);
+    ";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $report_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $report = $result->fetch_assoc();
     
     if (!$report) {
         echo json_encode(['success' => false, 'message' => 'Report not found']);

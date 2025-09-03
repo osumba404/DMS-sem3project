@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="280dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:background="@drawable/rounded_corner_bg">
+
+    <!-- Header with title and status -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="4dp">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary_dark"
+            android:ellipsize="end"
+            android:maxLines="1"
+            tools:text="Shelter Name" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="16dp"
+            android:layout_marginHorizontal="8dp"
+            android:background="#DDDDDD" />
+
+        <TextView
+            android:id="@+id/availability"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:text="80% available" />
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="4dp"
+        android:background="#EEEEEE" />
+
+    <!-- Shelter details -->
+    <TextView
+        android:id="@+id/snippet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@android:color/darker_gray"
+        android:maxLines="5"
+        android:ellipsize="end"
+        tools:text="123 Main St, City\n(555) 123-4567\nCapacity: 100 (50% available)\nSupplies: Good, Limited, Low\nBlankets: 25\nStatus: Open" />
+
+    <!-- Action button -->
+    <Button
+        android:id="@+id/btn_navigate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/primary"
+        android:paddingVertical="4dp"
+        android:text="Get Directions"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:textSize="12sp" />
+
+</LinearLayout>

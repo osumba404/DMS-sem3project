@@ -66,4 +66,39 @@
     <color name="warning_container">#FFF3E0</color>
     <color name="error">#D32F2F</color>
     <color name="error_container">#FFEBEE</color>
+    
+    <!-- Map Feature Colors -->
+    <color name="map_shelter_open">#42A5F5</color>
+    <color name="map_shelter_closed">#9E9E9E</color>
+    <color name="map_shelter_full">#EF5350</color>
+    
+    <color name="map_disaster_high">#F44336</color>
+    <color name="map_disaster_medium">#FF9800</color>
+    <color name="map_disaster_low">#4CAF50</color>
+    <color name="map_disaster_unknown">#9E9E9E</color>
+    
+    <!-- Map Overlay Colors -->
+    <color name="map_overlay_high">#4DF44336</color>  <!-- 30% opacity -->
+    <color name="map_overlay_medium">#4DFF9800</color>
+    <color name="map_overlay_low">#4D4CAF50</color>
+    <color name="map_overlay_unknown">#4D9E9E9E</color>
+    
+    <!-- UI Element Colors -->
+    <color name="divider_light">#1FFFFFFF</color>
+    <color name="ripple">#1F000000</color>
+    <color name="ripple_light">#1FFFFFFF</color>
+    
+    <!-- Shadow Colors -->
+    <color name="shadow">#26000000</color>
+<!--    <color name="shadow_light">#0A000000</color>-->
+    
+    <!-- Transparent Colors -->
+    <color name="semi_transparent">#80000000</color>
+    <color name="semi_transparent_white">#80FFFFFF</color>
+    
+    <!-- Other UI Colors -->
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_elevation">#0D000000</color>
+    <color name="chip_background">#F1F3F4</color>
+    <color name="chip_text">#3C4043</color>
 </resources>

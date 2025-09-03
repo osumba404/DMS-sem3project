@@ -168,8 +168,8 @@ public class WeatherFragment extends Fragment {
         tvPressure.setText(String.format(Locale.getDefault(), "Pressure: %.0f hPa", current.pressure));
         tvVisibility.setText(String.format(Locale.getDefault(), "Visibility: %.1f km", current.visibility / 1000.0));
         tvUvIndex.setText(String.format(Locale.getDefault(), "UV Index: %.1f", current.uvi));
-        tvSunrise.setText("Sunrise: " + formatTimestamp(current.sunrise, weatherData.timezone));
-        tvSunset.setText("Sunset: " + formatTimestamp(current.sunset, weatherData.timezone));
+//        tvSunrise.setText("Sunrise: " + formatTimestamp(current.sunrise, weatherData.timezone));
+//        tvSunset.setText("Sunset: " + formatTimestamp(current.sunset, weatherData.timezone));
 
         // Handle Hourly Forecast
         populateHourlyForecast(weatherData.hourly, weatherData.timezone);
@@ -179,11 +179,10 @@ public class WeatherFragment extends Fragment {
         if (hourly == null || hourly.isEmpty()) return;
 
         StringBuilder pastText = new StringBuilder("Last 24 hrs (coming soon)\n");
-        StringBuilder futureText = new StringBuilder("Next 24 hrs\n");
+        StringBuilder futureText = new StringBuilder("Next 12 hrs\n");
         String adverseWeatherInfo = "";
 
-        // OpenWeatherMap's 'hourly' array contains the past hour and the next 47 hours.
-        // We'll just focus on the future for now.
+
         for (int i = 0; i < hourly.size() && i < 25; i += 4) {
             if (i == 0) continue; // Skip the current hour which is already displayed
             HourlyForecast forecast = hourly.get(i);

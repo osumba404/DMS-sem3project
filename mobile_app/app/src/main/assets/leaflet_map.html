@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disaster Management Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        .custom-popup {
+            font-size: 14px;
+        }
+        .rescue-center {
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .affected-zone {
+            background-color: rgba(255, 0, 0, 0.3);
+            border: 2px solid #ff0000;
+        }
+        .my-location {
+            background-color: #2196F3;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            border: 3px solid white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize map
+        var map = L.map('map').setView([-1.2921, 36.8219], 10); // Default to Nairobi, Kenya
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 18
+        }).addTo(map);
+
+        // Custom icons
+        var rescueCenterIcon = L.divIcon({
+            className: 'rescue-center',
+            html: '🏥',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+
+        var myLocationIcon = L.divIcon({
+            className: 'my-location',
+            html: '📍',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+
+        var disasterIcon = L.divIcon({
+            className: 'disaster-zone',
+            html: '⚠️',
+            iconSize: [25, 25],
+            iconAnchor: [12, 12]
+        });
+
+        // Store markers and layers
+        var markers = {
+            userLocation: null,
+            rescueCenters: [],
+            disasters: [],
+            affectedZones: []
+        };
+
+        // Add user location
+        function addUserLocation(lat, lng) {
+            if (markers.userLocation) {
+                map.removeLayer(markers.userLocation);
+            }
+            
+            markers.userLocation = L.marker([lat, lng], {icon: myLocationIcon})
+                .addTo(map)
+                .bindPopup('<div class="custom-popup"><b>Your Location</b></div>');
+            
+            map.setView([lat, lng], 13);
+        }
+
+        // Add rescue centers
+        function addRescueCenters(centers) {
+            // Clear existing rescue center markers
+            markers.rescueCenters.forEach(marker => map.removeLayer(marker));
+            markers.rescueCenters = [];
+
+            centers.forEach(center => {
+                var marker = L.marker([center.latitude, center.longitude], {icon: rescueCenterIcon})
+                    .addTo(map)
+                    .bindPopup(`
+                        <div class="custom-popup">
+                            <b>${center.name}</b><br>
+                            <strong>Capacity:</strong> ${center.capacity}<br>
+                            <strong>Contact:</strong> ${center.contact_number}<br>
+                            <strong>Supplies:</strong><br>
+                            • Food: ${center.food_supplies}<br>
+                            • Water: ${center.water_supplies}<br>
+                            • Medical: ${center.medical_supplies}<br>
+                            • Blankets: ${center.blanket_supplies}<br>
+                            <button onclick="getDirections(${center.latitude}, ${center.longitude}, '${center.name}')">
+                                Get Directions
+                            </button>
+                        </div>
+                    `);
+                
+                markers.rescueCenters.push(marker);
+            });
+        }
+
+        // Add disaster zones
+        function addDisasterZones(disasters) {
+            // Clear existing disaster markers
+            markers.disasters.forEach(marker => map.removeLayer(marker));
+            markers.disasters = [];
+
+            disasters.forEach(disaster => {
+                var marker = L.marker([disaster.latitude, disaster.longitude], {icon: disasterIcon})
+                    .addTo(map)
+                    .bindPopup(`
+                        <div class="custom-popup">
+                            <b>${disaster.type}</b><br>
+                            <strong>Severity:</strong> ${disaster.severity}<br>
+                            <strong>Description:</strong> ${disaster.description}<br>
+                            <strong>Status:</strong> ${disaster.status}<br>
+                            <strong>Reported:</strong> ${disaster.relative_time}
+                        </div>
+                    `);
+                
+                markers.disasters.push(marker);
+            });
+        }
+
+        // Add affected zones (circles)
+        function addAffectedZones(zones) {
+            // Clear existing affected zones
+            markers.affectedZones.forEach(zone => map.removeLayer(zone));
+            markers.affectedZones = [];
+
+            zones.forEach(zone => {
+                var circle = L.circle([zone.latitude, zone.longitude], {
+                    color: '#ff0000',
+                    fillColor: '#ff0000',
+                    fillOpacity: 0.2,
+                    radius: zone.radius || 1000 // Default 1km radius
+                }).addTo(map)
+                .bindPopup(`
+                    <div class="custom-popup">
+                        <b>Affected Zone</b><br>
+                        <strong>Type:</strong> ${zone.type}<br>
+                        <strong>Risk Level:</strong> ${zone.risk_level}<br>
+                        <strong>Radius:</strong> ${(zone.radius || 1000)/1000}km
+                    </div>
+                `);
+                
+                markers.affectedZones.push(circle);
+            });
+        }
+
+        // Get directions (simple routing)
+        function getDirections(destLat, destLng, destName) {
+            if (!markers.userLocation) {
+                alert('Please enable location to get directions');
+                return;
+            }
+
+            var userLatLng = markers.userLocation.getLatLng();
+            
+            // Create a simple line between user and destination
+            var routeLine = L.polyline([
+                [userLatLng.lat, userLatLng.lng],
+                [destLat, destLng]
+            ], {
+                color: '#2196F3',
+                weight: 4,
+                opacity: 0.7
+            }).addTo(map);
+
+            // Calculate approximate distance
+            var distance = map.distance([userLatLng.lat, userLatLng.lng], [destLat, destLng]);
+            var distanceKm = (distance / 1000).toFixed(2);
+
+            // Show route info
+            L.popup()
+                .setLatLng([destLat, destLng])
+                .setContent(`
+                    <div class="custom-popup">
+                        <b>Route to ${destName}</b><br>
+                        <strong>Distance:</strong> ~${distanceKm} km<br>
+                        <small>Approximate straight-line distance</small><br>
+                        <button onclick="openExternalMap(${destLat}, ${destLng})">
+                            Open in Maps App
+                        </button>
+                    </div>
+                `)
+                .openOn(map);
+
+            // Fit map to show both points
+            var group = new L.featureGroup([markers.userLocation, routeLine]);
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
+
+        // Open external maps app
+        function openExternalMap(lat, lng) {
+            var url = `geo:${lat},${lng}?q=${lat},${lng}`;
+            window.location.href = url;
+        }
+
+        // JavaScript interface for Android
+        window.AndroidInterface = {
+            setUserLocation: addUserLocation,
+            setRescueCenters: addRescueCenters,
+            setDisasterZones: addDisasterZones,
+            setAffectedZones: addAffectedZones,
+            centerMap: function(lat, lng, zoom) {
+                map.setView([lat, lng], zoom || 13);
+            },
+            clearMap: function() {
+                // Clear all markers and zones
+                Object.values(markers).flat().forEach(item => {
+                    if (item && map.hasLayer(item)) {
+                        map.removeLayer(item);
+                    }
+                });
+                markers = {
+                    userLocation: null,
+                    rescueCenters: [],
+                    disasters: [],
+                    affectedZones: []
+                };
+            }
+        };
+
+        // Try to get user's location on load
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    addUserLocation(position.coords.latitude, position.coords.longitude);
+                },
+                function(error) {
+                    console.log('Geolocation error:', error);
+                }
+            );
+        }
+    </script>
+</body>
+</html>
