@@ -76,6 +76,52 @@ public class DisasterAlert {
         return relativeTime != null ? relativeTime : "";
     }
 
+    // Parse latitude from WKT string (POINT(lon lat))
+    public double getLatitude() {
+        if (affectedArea == null || !affectedArea.startsWith("POINT")) {
+            return 0.0;
+        }
+        try {
+            // Extract the coordinates part: POINT(lon lat) -> lon lat
+            String coords = affectedArea
+                .replace("POINT(", "")
+                .replace(")", "")
+                .trim();
+            // Split into [lon, lat]
+            String[] parts = coords.split("\\s+");
+            if (parts.length >= 2) {
+                // WKT format is (longitude latitude)
+                return Double.parseDouble(parts[1]);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
+
+    // Parse longitude from WKT string (POINT(lon lat))
+    public double getLongitude() {
+        if (affectedArea == null || !affectedArea.startsWith("POINT")) {
+            return 0.0;
+        }
+        try {
+            // Extract the coordinates part: POINT(lon lat) -> lon lat
+            String coords = affectedArea
+                .replace("POINT(", "")
+                .replace(")", "")
+                .trim();
+            // Split into [lon, lat]
+            String[] parts = coords.split("\\s+");
+            if (parts.length >= 1) {
+                // WKT format is (longitude latitude)
+                return Double.parseDouble(parts[0]);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
+
     // Setters (if needed for your use case)
     public void setSeverity(String severity) {
         this.severity = severity;

@@ -2,27 +2,29 @@ package com.example.mobile_app.fragments;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.location.Location;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.mobile_app.BuildConfig;
 import com.example.mobile_app.R;
 import com.example.mobile_app.models.DisasterAlert;
 import com.example.mobile_app.models.MapData;
@@ -31,28 +33,27 @@ import com.example.mobile_app.models.Shelter;
 import com.example.mobile_app.network.ApiClient;
 import com.example.mobile_app.network.ApiService;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polygon;
-import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.io.IOException;
+import org.osmdroid.api.IMapController;
+import org.osmdroid.config.Configuration;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.ItemizedIconOverlay;
+import org.osmdroid.views.overlay.OverlayItem;
+import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
+import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.time.OffsetDateTime;
+import java.util.Date;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -60,454 +61,409 @@ import retrofit2.Response;
 
 public class MapViewFragment extends Fragment {
 
-    private GoogleMap mMap;
+    private MapView map;
     private FusedLocationProviderClient fusedLocationClient;
     private ApiService apiService;
-    private boolean isFirstLocationUpdate = true;
-    private LocationCallback locationCallback;
+    private IMapController mapController;
+    private MyLocationNewOverlay myLocationOverlay;
+    private ProgressBar progressBar;
+    private ItemizedIconOverlay<OverlayItem> shelterOverlay;
+    private ItemizedIconOverlay<OverlayItem> disasterOverlay;
+    private static final int REQUEST_LOCATION_PERMISSION = 1;
+    private List<Shelter> shelters;
+    private List<DisasterAlert> disasters;
 
-    private final ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    initializeMap();
-                } else {
-                    Toast.makeText(getContext(), "Location permission is required for the map.", Toast.LENGTH_LONG).show();
-                }
-            });
-
-    public MapViewFragment() {
-        super(R.layout.fragment_map_view);
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // Initialize OSMDroid configuration
+        Configuration.getInstance().load(requireContext(), requireContext().getSharedPreferences("osm_prefs", 0));
+        Configuration.getInstance().setUserAgentValue(BuildConfig.APPLICATION_ID);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_map_view, container, false);
 
-        apiService = ApiClient.getApiService();
+        // Initialize map
+        map = view.findViewById(R.id.map);
+        progressBar = view.findViewById(R.id.progressBar);
+
+        // Initialize services
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        apiService = ApiClient.getApiService();
+
+        // Initialize FAB with the correct ID from your layout
+        FloatingActionButton fabMyLocation = view.findViewById(R.id.fab_my_location);
+        fabMyLocation.setOnClickListener(v -> centerOnMyLocation());
 
         initializeMap();
+        return view;
     }
 
     private void initializeMap() {
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(googleMap -> {
-                mMap = googleMap;
-                checkLocationPermission();
-            });
+        // Configure map
+        map.setTileSource(TileSourceFactory.MAPNIK);
+        map.setMultiTouchControls(true);
+        mapController = map.getController();
+        mapController.setZoom(12.0);
+
+        // Add my location overlay
+        myLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(requireContext()), map);
+        myLocationOverlay.enableMyLocation();
+        myLocationOverlay.enableFollowLocation();
+        myLocationOverlay.runOnFirstFix(this::centerOnMyLocation);
+        map.getOverlays().add(myLocationOverlay);
+
+        // Request location permission if not granted
+        if (checkLocationPermission()) {
+            centerOnMyLocation();
         } else {
-            Log.e("MapViewDebug", "SupportMapFragment not found!");
+            requestLocationPermission();
         }
     }
 
-    private void checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            startLocationUpdates();
-        } else {
-            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+    private boolean checkLocationPermission() {
+        return ContextCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestLocationPermission() {
+        requestPermissions(
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                REQUEST_LOCATION_PERMISSION
+        );
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_LOCATION_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                centerOnMyLocation();
+            } else {
+                // Default to Nairobi if permission denied
+                mapController.setCenter(new GeoPoint(-1.286389, 36.817223));
+                mapController.setZoom(10.0);
+            }
         }
     }
 
     @SuppressLint("MissingPermission")
-    private void startLocationUpdates() {
-        if (mMap == null) return;
-        mMap.setMyLocationEnabled(true);
-        mMap.getUiSettings().setMyLocationButtonEnabled(true);
-
-        LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setInterval(10000);
-        locationRequest.setFastestInterval(5000);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(@NonNull LocationResult locationResult) {
-                if (locationResult.getLastLocation() != null) {
-                    Location location = locationResult.getLastLocation();
-                    if (isFirstLocationUpdate) {
-                        isFirstLocationUpdate = false;
-                        LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 10f));
-                        fetchMapData(location.getLatitude(), location.getLongitude());
-                    }
+    private void centerOnMyLocation() {
+        if (checkLocationPermission()) {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(requireActivity(), location -> {
+                if (location != null) {
+                    GeoPoint myLocation = new GeoPoint(location.getLatitude(), location.getLongitude());
+                    mapController.animateTo(myLocation);
+                    fetchMapData(location.getLatitude(), location.getLongitude());
                 }
-            }
-        };
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+            });
+        }
     }
 
     private void fetchMapData(double lat, double lon) {
-        if (mMap == null) return;
-        
-        // Show loading indicator
-        if (getView() != null) {
-            ProgressBar progressBar = getView().findViewById(R.id.progressBar);
-            if (progressBar != null) {
-                progressBar.setVisibility(View.VISIBLE);
-            }
-        }
+        progressBar.setVisibility(View.VISIBLE);
 
         int searchRadiusKm = 50; // Default search radius of 50km
         apiService.getMapData(lat, lon, searchRadiusKm).enqueue(new Callback<MapDataResponse>() {
             @Override
             public void onResponse(@NonNull Call<MapDataResponse> call, @NonNull Response<MapDataResponse> response) {
-                // Hide loading indicator
-                if (getView() != null) {
-                    ProgressBar progressBar = getView().findViewById(R.id.progressBar);
-                    if (progressBar != null) {
-                        progressBar.setVisibility(View.GONE);
-                    }
-                }
-                
-                if (mMap == null) return;
-                mMap.clear();
-                
+                progressBar.setVisibility(View.GONE);
+
                 if (response.isSuccessful() && response.body() != null) {
                     MapData mapData = response.body().getData();
                     if (mapData != null) {
-                        if (mapData.getShelters() != null && !mapData.getShelters().isEmpty()) {
-                            addSheltersToMap(mapData.getShelters());
+                        shelters = mapData.getShelters();
+                        disasters = mapData.getDisasters();
+                        if (shelters != null && !shelters.isEmpty()) {
+                            addShelterMarkers(shelters);
                         }
-                        if (mapData.getDisasters() != null && !mapData.getDisasters().isEmpty()) {
-                            addDisastersToMap(mapData.getDisasters());
-                        }
-                    }
-                } else {
-                    String errorMessage = "Failed to load map data";
-                    if (response.errorBody() != null) {
-                        try {
-                            errorMessage = response.errorBody().string();
-                        } catch (IOException e) {
-                            Log.e("MapViewFragment", "Error reading error body", e);
+                        if (disasters != null && !disasters.isEmpty()) {
+                            addDisasterMarkers(disasters);
                         }
                     }
-                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<MapDataResponse> call, @NonNull Throwable t) {
-                // Hide loading indicator
-                if (getView() != null) {
-                    ProgressBar progressBar = getView().findViewById(R.id.progressBar);
-                    if (progressBar != null) {
-                        progressBar.setVisibility(View.GONE);
-                    }
-                }
-                
-                String errorMessage = "Network error: " + t.getMessage();
-                Log.e("MapViewFragment", errorMessage, t);
-                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(requireContext(), "Failed to load map data", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void addSheltersToMap(List<Shelter> shelters) {
-        if (mMap == null) return;
-        
-        // Set a custom info window adapter for better styling
-        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-            @Override
-            public View getInfoWindow(Marker marker) {
-                return null; // Use default info window frame
-            }
+    private void addShelterMarkers(List<Shelter> shelters) {
+        if (shelters == null || map == null) return;
 
-            @Override
-            public View getInfoContents(Marker marker) {
-                View infoWindow = getLayoutInflater().inflate(R.layout.custom_shelter_info_window, null);
-                
-                TextView title = infoWindow.findViewById(R.id.title);
-                TextView snippet = infoWindow.findViewById(R.id.snippet);
-                TextView availability = infoWindow.findViewById(R.id.availability);
-                
-                title.setText(marker.getTitle());
-                snippet.setText(marker.getSnippet());
-                
-                // Set availability text with color coding
-                Object tag = marker.getTag();
-                if (tag != null && tag instanceof Shelter) {
-                    Shelter shelter = (Shelter) tag;
-                    String availabilityText = String.format("%.0f%% available • %.1f km away", 
-                        shelter.getAvailabilityPercentage(), 
-                        shelter.getDistanceKm());
-                    availability.setText(availabilityText);
-                    
-                    // Set text color based on availability
-                    int color = ContextCompat.getColor(requireContext(), 
-                        shelter.getAvailabilityPercentage() > 20 ? 
-                        R.color.success : R.color.warning);
-                    availability.setTextColor(color);
-                }
-                
-                return infoWindow;
-            }
-        });
-        
-        // Add markers for each shelter
+        List<OverlayItem> items = new ArrayList<>();
         for (Shelter shelter : shelters) {
-            LatLng shelterLocation = new LatLng(shelter.getLatitude(), shelter.getLongitude());
-            Marker marker = mMap.addMarker(new MarkerOptions()
-                .position(shelterLocation)
-                .title(shelter.getName())
-                .snippet(shelter.getInfoSnippet())
-                .icon(BitmapDescriptorFactory.defaultMarker(
-                    shelter.getStatus().equalsIgnoreCase("Open") ? 
-                    BitmapDescriptorFactory.HUE_GREEN : 
-                    BitmapDescriptorFactory.HUE_RED
-                ))
-            );
-            
-            // Store the shelter object in the marker's tag for later reference
+            OverlayItem item = new OverlayItem(shelter.getName(), shelter.getAddress(), new GeoPoint(shelter.getLatitude(), shelter.getLongitude()));
+
+            // Set the shelter marker icon
+            Drawable marker = ContextCompat.getDrawable(requireContext(), R.drawable.ic_shelter_marker);
             if (marker != null) {
-                marker.setTag(shelter);
+                marker = marker.mutate();
+                marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker.getIntrinsicHeight());
+                item.setMarker(marker);
             }
+
+            items.add(item);
         }
-        
-        // Set a click listener for the info window
-        mMap.setOnInfoWindowClickListener(marker -> {
-            // Handle marker click if needed
-            Object tag = marker.getTag();
-            if (tag != null && tag instanceof Shelter) {
-                Shelter shelter = (Shelter) tag;
-                // You can add navigation to a detailed view here
-                Toast.makeText(requireContext(), "Selected: " + shelter.getName(), Toast.LENGTH_SHORT).show();
+
+        // Remove existing overlay if it exists
+        if (shelterOverlay != null) {
+            map.getOverlays().remove(shelterOverlay);
+        }
+
+        // Create and add new overlay
+        shelterOverlay = new ItemizedIconOverlay<>(items, new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+            @Override
+            public boolean onItemSingleTapUp(int index, OverlayItem item) {
+                return false;
             }
-        });
+
+            @Override
+            public boolean onItemLongPress(int index, OverlayItem item) {
+                showShelterDetails(shelters.get(index));
+                return true;
+            }
+        }, requireContext().getApplicationContext());
+
+        map.getOverlays().add(shelterOverlay);
+        map.invalidate();
     }
 
-    private void addDisastersToMap(List<DisasterAlert> disasters) {
-        if (mMap == null) return;
-        
-        // Set a custom info window adapter for disaster markers
-        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-            @Override
-            public View getInfoWindow(Marker marker) {
-                return null; // Use default info window frame
-            }
+    private void addDisasterMarkers(List<DisasterAlert> disasters) {
+        if (disasters == null || map == null) return;
 
-            @Override
-            public View getInfoContents(Marker marker) {
-                View infoWindow = getLayoutInflater().inflate(R.layout.custom_disaster_info_window, null);
-                
-                TextView title = infoWindow.findViewById(R.id.title);
-                TextView type = infoWindow.findViewById(R.id.type);
-                TextView severity = infoWindow.findViewById(R.id.severity);
-                TextView description = infoWindow.findViewById(R.id.description);
-                TextView date = infoWindow.findViewById(R.id.date);
-                
-                title.setText(marker.getTitle());
-                
-                Object tag = marker.getTag();
-                if (tag != null && tag instanceof DisasterAlert) {
-                    DisasterAlert disaster = (DisasterAlert) tag;
-                    
-                    type.setText(String.format("Type: %s", disaster.getType()));
-                    severity.setText(String.format("Severity: %s", disaster.getSeverity()));
-                    description.setText(disaster.getDescription());
-                    
-                    // Format date
-                    if (disaster.getCreatedAt() != null) {
-                        SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy hh:mm a", Locale.getDefault());
-                        String dateStr = sdf.format(disaster.getCreatedAt());
-                        date.setText(dateStr);
-                    } else {
-                        date.setVisibility(View.GONE);
-                    }
-                    
-                    // Set severity color
-                    int severityColor = getSeverityColor(disaster.getSeverity());
-                    severity.setTextColor(severityColor);
-                }
-                
-                return infoWindow;
-            }
-        });
-        
-        // Add markers and polygons for each disaster
+        List<OverlayItem> items = new ArrayList<>();
         for (DisasterAlert disaster : disasters) {
-            List<LatLng> polygonPoints = parseWktPolygon(disaster.getAffectedArea());
-            if (polygonPoints != null && !polygonPoints.isEmpty()) {
-                // Create a polygon for the affected area
-                int strokeColor = getSeverityColor(disaster.getSeverity());
-                int fillColor = Color.argb(70, Color.red(strokeColor), Color.green(strokeColor), Color.blue(strokeColor));
-                
-                PolygonOptions polygonOptions = new PolygonOptions()
-                    .addAll(polygonPoints)
-                    .strokeColor(strokeColor)
-                    .strokeWidth(5)
-                    .fillColor(fillColor);
-                
-                mMap.addPolygon(polygonOptions);
-                
-                // Add a marker at the center of the affected area
-                LatLng center = getPolygonCenter(polygonPoints);
-                Marker marker = mMap.addMarker(new MarkerOptions()
-                    .position(center)
-                    .title(disaster.getName())
-                    .snippet(disaster.getDescription())
-                    .icon(BitmapDescriptorFactory.defaultMarker(
-                        getSeverityHue(disaster.getSeverity())
-                    ))
-                );
-                
-                if (marker != null) {
-                    marker.setTag(disaster);
-                }
+            // Assuming DisasterAlert has getLatitude() and getLongitude() methods
+            // If not, you'll need to parse them from the WKT string in affectedArea
+            double lat = disaster.getLatitude();
+            double lon = disaster.getLongitude();
+
+            OverlayItem item = new OverlayItem(disaster.getName(), disaster.getType(), new GeoPoint(lat, lon));
+
+            // Set appropriate icon based on disaster type
+            int iconResId;
+            switch (disaster.getType().toLowerCase()) {
+                case "flood":
+                    iconResId = R.drawable.ic_baseline_flood_24;
+                    break;
+                case "landslide":
+                    iconResId = R.drawable.ic_baseline_terrain_24;
+                    break;
+                case "fire":
+                    iconResId = R.drawable.ic_baseline_local_fire_department_24;
+                    break;
+                default:
+                    iconResId = R.drawable.ic_baseline_warning_24;
             }
+
+            item.setMarker(ContextCompat.getDrawable(requireContext(), iconResId));
+            items.add(item);
         }
+
+        // Remove existing overlay if it exists
+        if (disasterOverlay != null) {
+            map.getOverlays().remove(disasterOverlay);
+        }
+
+        // Create and add new overlay
+        disasterOverlay = new ItemizedIconOverlay<>(items, new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+            @Override
+            public boolean onItemSingleTapUp(int index, OverlayItem item) {
+                return false;
+            }
+
+            @Override
+            public boolean onItemLongPress(int index, OverlayItem item) {
+                showDisasterDetails(disasters.get(index));
+                return true;
+            }
+        }, requireContext().getApplicationContext());
+
+        map.getOverlays().add(disasterOverlay);
+        map.invalidate();
+    }
+
+    private void showShelterDetails(Shelter shelter) {
+        View dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_shelter_details, null);
+
+        // Initialize views
+        TextView nameView = dialogView.findViewById(R.id.shelterName);
+        TextView capacityView = dialogView.findViewById(R.id.shelterCapacity);
+        TextView locationView = dialogView.findViewById(R.id.shelterLocation);
+        ImageView iconFood = dialogView.findViewById(R.id.iconFood);
+        ImageView iconWater = dialogView.findViewById(R.id.iconWater);
+        ImageView iconMedical = dialogView.findViewById(R.id.iconMedical);
+        ImageView iconBlankets = dialogView.findViewById(R.id.iconBlankets);
+        MaterialButton btnGetDirections = dialogView.findViewById(R.id.btnGetDirections);
+
+        // Set data
+        nameView.setText(shelter.getName());
         
-        // Set a click listener for the info window
-        mMap.setOnInfoWindowClickListener(marker -> {
-            Object tag = marker.getTag();
-            if (tag != null && tag instanceof DisasterAlert) {
-                DisasterAlert disaster = (DisasterAlert) tag;
-                // You can add navigation to a detailed view here
-                showDisasterDetails(disaster);
+        // Calculate occupancy percentage safely
+        double occupancyPercentage = shelter.getCapacity() > 0 ? 
+            (shelter.getCurrentOccupancy() * 100.0) / shelter.getCapacity() : 0;
+            
+        capacityView.setText(String.format(Locale.getDefault(), 
+            "%d/%d people (%.0f%% full)", 
+            shelter.getCurrentOccupancy(), 
+            shelter.getCapacity(),
+            occupancyPercentage));
+            
+        locationView.setText(shelter.getAddress());
+
+        // Show/hide supply icons based on availability
+        if (shelter.getFoodSupply() != null && !shelter.getFoodSupply().isEmpty()) {
+            iconFood.setVisibility(View.VISIBLE);
+        }
+        if (shelter.getWaterSupply() != null && !shelter.getWaterSupply().isEmpty()) {
+            iconWater.setVisibility(View.VISIBLE);
+        }
+        if (shelter.getMedicalSupply() != null && !shelter.getMedicalSupply().isEmpty()) {
+            iconMedical.setVisibility(View.VISIBLE);
+        }
+        if (shelter.getBlanketsAvailable() > 0) {
+            iconBlankets.setVisibility(View.VISIBLE);
+        }
+
+        // Set up directions button
+        btnGetDirections.setOnClickListener(v -> {
+            // Open Google Maps with directions to the shelter
+            String uri = String.format(Locale.ENGLISH,
+                "google.navigation:q=%f,%f",
+                shelter.getLatitude(),
+                shelter.getLongitude());
+
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+            mapIntent.setPackage("com.google.android.apps.maps");
+
+            // Verify that the intent will resolve to an activity
+            if (mapIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
+                startActivity(mapIntent);
+            } else {
+                // If Google Maps is not installed, open in browser
+                String url = String.format(Locale.ENGLISH,
+                    "https://www.google.com/maps/dir/?api=1&destination=%f,%f",
+                    shelter.getLatitude(),
+                    shelter.getLongitude());
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(browserIntent);
             }
         });
+
+        // Show dialog
+        new MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .setPositiveButton("Close", null)
+            .show();
     }
-    
-    private int getSeverityColor(String severity) {
-        if (severity == null) return Color.GRAY;
-        
-        switch (severity.toLowerCase(Locale.US)) {
-            case "high":
-                return ContextCompat.getColor(requireContext(), R.color.accent_danger);
-            case "medium":
-                return ContextCompat.getColor(requireContext(), R.color.warning);
-            case "low":
-                return ContextCompat.getColor(requireContext(), R.color.success);
-            default:
-                return Color.GRAY;
-        }
-    }
-    
-    private float getSeverityHue(String severity) {
-        if (severity == null) return BitmapDescriptorFactory.HUE_YELLOW;
-        
-        switch (severity.toLowerCase(Locale.US)) {
-            case "high":
-                return BitmapDescriptorFactory.HUE_RED;
-            case "medium":
-                return BitmapDescriptorFactory.HUE_ORANGE;
-            case "low":
-                return BitmapDescriptorFactory.HUE_GREEN;
-            default:
-                return BitmapDescriptorFactory.HUE_YELLOW;
-        }
-    }
-    
+
     private void showDisasterDetails(DisasterAlert disaster) {
-        if (disaster == null || getContext() == null) return;
-        
-        try {
-            // Create and show a dialog with disaster details
-            AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-            builder.setTitle(disaster.getName())
-                .setMessage(String.format(Locale.US,
-                    "Type: %s\n" +
-                    "Severity: %s\n" +
-                    "Status: %s\n" +
-                    "\n%s",
-                    disaster.getType() != null ? disaster.getType() : "N/A",
-                    disaster.getSeverity() != null ? disaster.getSeverity() : "N/A",
-                    disaster.getStatus() != null ? disaster.getStatus() : "N/A",
-                    disaster.getDescription() != null ? disaster.getDescription() : "No description available"
-                ))
-                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
-                .show();
-        } catch (Exception e) {
-            Log.e("MapViewFragment", "Error showing disaster details", e);
-            Toast.makeText(getContext(), "Error showing disaster details", Toast.LENGTH_SHORT).show();
-        }
-    }
+        View dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_disaster_details, null);
 
-    private List<LatLng> parseWktPolygon(String wkt) {
-        List<LatLng> points = new ArrayList<>();
-        if (wkt == null || wkt.isEmpty()) return points;
-        
-        try {
-            // Handle both POLYGON and MULTIPOLYGON formats
-            String processedWkt = wkt.toUpperCase(Locale.US);
-            if (!processedWkt.contains("POLYGON")) return points;
-            
-            // Extract coordinates string
-            Pattern pattern = Pattern.compile("\\(([^)]+)\\)");
-            Matcher matcher = pattern.matcher(wkt);
-            
-            while (matcher.find()) {
-                String coords = matcher.group(1);
-                // Split by comma and optional whitespace
-                String[] coordPairs = coords.split("\\s*,\\s*");
-                
-                for (String pair : coordPairs) {
-                    String[] xy = pair.trim().split("\\s+");
-                    if (xy.length >= 2) {
-                        try {
-                            double lon = Double.parseDouble(xy[0]);
-                            double lat = Double.parseDouble(xy[1]);
-                            points.add(new LatLng(lat, lon));
-                        } catch (NumberFormatException e) {
-                            Log.e("MapViewFragment", "Error parsing coordinate: " + pair, e);
-                        }
-                    }
-                }
-                
-                // For now, only process the first polygon if it's a MULTIPOLYGON
-                if (processedWkt.startsWith("MULTIPOLYGON")) {
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            Log.e("MapViewFragment", "Error parsing WKT polygon", e);
-        }
-        
-        return points;
-    }
+        // Initialize views
+        TextView titleView = dialogView.findViewById(R.id.disasterTitle);
+        TextView severityView = dialogView.findViewById(R.id.disasterSeverity);
+        ImageView iconView = dialogView.findViewById(R.id.disasterIcon);
+        TextView locationView = dialogView.findViewById(R.id.disasterLocation);
+        TextView timeView = dialogView.findViewById(R.id.disasterTime);
+        TextView descriptionView = dialogView.findViewById(R.id.disasterDescription);
+        MaterialButton btnViewOnMap = dialogView.findViewById(R.id.btnViewOnMap);
 
-    private LatLng getPolygonCenter(List<LatLng> polygon) {
-        if (polygon == null || polygon.isEmpty()) return new LatLng(0, 0);
-        
-        try {
-            double lat = 0.0;
-            double lon = 0.0;
-            int count = 0;
-            
-            for (LatLng point : polygon) {
-                if (point != null) {
-                    lat += point.latitude;
-                    lon += point.longitude;
-                    count++;
-                }
-            }
-            
-            if (count > 0) {
-                return new LatLng(lat / count, lon / count);
-            }
-        } catch (Exception e) {
-            Log.e("MapViewFragment", "Error calculating polygon center", e);
-        }
-        
-        // Return a default location if something goes wrong
-        return new LatLng(0, 0);
-    }
+        // Set disaster data
+        titleView.setText(disaster.getName());
+        String severity = disaster.getSeverity().toLowerCase();
+        severityView.setText(severity);
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (fusedLocationClient != null && locationCallback != null) {
-            fusedLocationClient.removeLocationUpdates(locationCallback);
+        // Set severity background color
+        int bgColorResId;
+        switch (severity) {
+            case "high":
+                bgColorResId = R.color.accent_danger;
+                break;
+            case "medium":
+                bgColorResId = R.color.accent_warning;
+                break;
+            case "low":
+            default:
+                bgColorResId = R.color.accent_info;
         }
+        severityView.setBackgroundColor(ContextCompat.getColor(requireContext(), bgColorResId));
+
+        // Set icon based on disaster type (you can expand this switch with more types)
+        int iconResId;
+        switch (disaster.getType().toLowerCase()) {
+            case "flood":
+                iconResId = R.drawable.ic_baseline_flood_24;
+                break;
+            case "earthquake":
+                iconResId = R.drawable.ic_baseline_terrain_24;
+                break;
+            case "fire":
+                iconResId = R.drawable.ic_baseline_local_fire_department_24;
+                break;
+            default:
+                iconResId = R.drawable.ic_baseline_warning_24;
+        }
+        iconView.setImageResource(iconResId);
+
+        locationView.setText(String.format("%.6f, %.6f",
+                disaster.getLatitude(),
+                disaster.getLongitude()));
+
+        // Format the timestamp
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy h:mm a", Locale.getDefault());
+        if (disaster.getCreatedAt() != null && !disaster.getCreatedAt().isEmpty()) {
+            try {
+                // Parse the ISO 8601 timestamp
+                OffsetDateTime dateTime = OffsetDateTime.parse(disaster.getCreatedAt());
+                timeView.setText(sdf.format(Date.from(dateTime.toInstant())));
+            } catch (Exception e) {
+                timeView.setText("N/A");
+                e.printStackTrace();
+            }
+        } else {
+            timeView.setText("Time not available");
+        }
+
+        descriptionView.setText(disaster.getDescription() != null ?
+                disaster.getDescription() : "No additional details available.");
+
+        // Create and show the dialog
+        AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
+                .setView(dialogView)
+                .setPositiveButton("Close", null)
+                .create();
+
+        // Handle view on map button click
+        btnViewOnMap.setOnClickListener(v -> {
+            // Center the map on the disaster location
+            GeoPoint point = new GeoPoint(disaster.getLatitude(), disaster.getLongitude());
+            mapController.animateTo(point);
+            mapController.setZoom(15.0);
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (mMap != null) {
-            isFirstLocationUpdate = true;
-            // We re-check permission here in case the user revoked it while the app was paused
-            checkLocationPermission();
-        }
+        map.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        map.onPause();
     }
 }

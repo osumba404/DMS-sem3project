@@ -4,24 +4,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="?android:attr/colorBackground"
     android:fitsSystemWindows="true"
     tools:context=".activities.ProfileActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
+        android:fitsSystemWindows="true"
+        android:theme="@style/Theme.Mobile_app">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar_profile"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@drawable/toolbar_gradient_background"
-            app:title="My Profile"
-            app:titleTextColor="@color/on_primary"
             app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="@color/on_primary" />
+            app:title="My Profile"
+            app:titleTextAppearance="@style/TextAppearance.Mobile_app.Headline2"
+            app:titleTextColor="?attr/colorOnSurface" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -43,7 +43,7 @@
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="6dp"
-                app:cardBackgroundColor="@color/surface"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:strokeWidth="0dp">
 
                 <LinearLayout
@@ -56,16 +56,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Account Information"
-                        android:textAppearance="@style/PremiumTextAppearance.Headline2"
-                        android:textColor="@color/on_surface"
+                        android:textAppearance="@style/TextAppearance.Mobile_app.Headline2"
+                        android:textColor="?attr/colorOnSurface"
                         android:layout_marginBottom="12dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Email Address"
-                        android:textAppearance="@style/PremiumTextAppearance.Body2"
-                        android:textColor="@color/on_surface_variant"
+                        android:textAppearance="@style/TextAppearance.Mobile_app.Body2"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="12sp"
                         android:layout_marginBottom="4dp" />
 
@@ -73,8 +73,8 @@
                         android:id="@+id/tv_profile_email"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textAppearance="@style/PremiumTextAppearance.Body1"
-                        android:textColor="@color/on_surface"
+                        android:textAppearance="@style/TextAppearance.Mobile_app.Body1"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="14sp"
                         android:padding="12dp"
                         android:background="@drawable/bg_disabled_field"
@@ -91,7 +91,7 @@
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="6dp"
-                app:cardBackgroundColor="@color/surface"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:strokeWidth="0dp">
 
                 <LinearLayout
@@ -104,8 +104,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Personal Details"
-                        android:textAppearance="@style/PremiumTextAppearance.Headline2"
-                        android:textColor="@color/on_surface"
+                        android:textAppearance="@style/TextAppearance.Mobile_app.Headline2"
+                        android:textColor="?attr/colorOnSurface"
                         android:layout_marginBottom="16dp" />
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -113,12 +113,13 @@
                         android:layout_height="wrap_content"
                         android:hint="Full Name"
                         android:layout_marginBottom="12dp"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_profile_name"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:inputType="textPersonName" />
 
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -127,7 +128,7 @@
                         android:layout_height="wrap_content"
                         android:hint="Phone Number"
                         android:layout_marginBottom="16dp"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_profile_phone"
@@ -155,7 +156,7 @@
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="6dp"
-                app:cardBackgroundColor="@color/surface"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:strokeWidth="0dp">
 
                 <LinearLayout
@@ -168,8 +169,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Quick Actions"
-                        android:textAppearance="@style/PremiumTextAppearance.Headline2"
-                        android:textColor="@color/on_surface"
+                        android:textAppearance="@style/TextAppearance.Mobile_app.Headline2"
+                        android:textColor="?attr/colorOnSurface"
                         android:layout_marginBottom="16dp" />
 
                     <com.google.android.material.button.MaterialButton
@@ -202,7 +203,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="center"
-        android:indeterminateTint="@color/primary"
+        android:indeterminateTint="?attr/colorPrimary"
         android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

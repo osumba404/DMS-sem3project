@@ -1,3 +1,43 @@
 <resources>
-    <string name="app_name">mobile_app</string>
+    <string name="app_name">DMS App</string>
+    <string name="center_on_me">Center on my location</string>
+    
+    <!-- Authentication -->
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="version">Version %1$s</string>
+    
+    <!-- Common -->
+    <string name="submit">Submit</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="edit">Edit</string>
+    
+    <!-- Profile -->
+    <string name="profile">Profile</string>
+    <string name="full_name">Full Name</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="address">Address</string>
+    <string name="update_profile">Update Profile</string>
+    <string name="change_password">Change Password</string>
+    <string name="logout">Logout</string>
+    
+    <!-- Alerts -->
+    <string name="alerts">Alerts</string>
+    <string name="no_alerts">No alerts to display</string>
+    <string name="new_alert">New Alert</string>
+    
+    <!-- Weather -->
+    <string name="weather">Weather</string>
+    <string name="current_weather">Current Weather</string>
+    <string name="humidity">Humidity</string>
+    <string name="wind_speed">Wind Speed</string>
+    <string name="pressure">Pressure</string>
+    <string name="visibility">Visibility</string>
+    <string name="sunrise">Sunrise</string>
+    <string name="sunset">Sunset</string>
+    <string name="weather_forecast">Weather Forecast</string>
+    <string name="weather_details">Weather Details</string>
 </resources>

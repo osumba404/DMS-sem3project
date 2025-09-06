@@ -3,58 +3,60 @@
     <!--
     Dark theme with enhanced contrast and visibility
     -->
-    <style name="Theme.Mobile_app" parent="Theme.Material3.DayNight.NoActionBar">
-
-        <!-- Primary colors for dark mode -->
+    <style name="Theme.Mobile_app" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
         <item name="colorPrimary">@color/primary_light</item>
         <item name="colorPrimaryVariant">@color/primary</item>
-        <item name="colorOnPrimary">@color/neutral_900</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
         
-        <!-- Surface colors for dark mode -->
-        <item name="colorSurface">@color/neutral_800</item>
-        <item name="colorSurfaceVariant">@color/neutral_700</item>
-        <item name="colorOnSurface">@color/neutral_100</item>
-        <item name="colorOnSurfaceVariant">@color/neutral_300</item>
-
-        <!-- Secondary colors -->
+        <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/primary_light</item>
         <item name="colorSecondaryVariant">@color/primary</item>
-        <item name="colorOnSecondary">@color/neutral_900</item>
-
-        <!-- Background colors for dark mode -->
+        <item name="colorOnSecondary">@color/on_primary</item>
+        
+        <!-- Background colors -->
         <item name="android:colorBackground">@color/neutral_900</item>
         <item name="colorOnBackground">@color/neutral_100</item>
-
-        <!-- Status bar styling -->
+        
+        <!-- Surface colors -->
+        <item name="colorSurface">@color/neutral_800</item>
+        <item name="colorOnSurface">@color/neutral_100</item>
+        
+        <!-- Status bar color. -->
         <item name="android:statusBarColor">@color/neutral_900</item>
         <item name="android:windowLightStatusBar">false</item>
         
         <!-- Navigation bar styling -->
         <item name="android:navigationBarColor">@color/neutral_800</item>
         <item name="android:windowLightNavigationBar">false</item>
-
+        
         <!-- Window styling -->
         <item name="android:windowBackground">@color/neutral_900</item>
-        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
         
         <!-- Material components styling -->
         <item name="materialAlertDialogTheme">@style/AppMaterialAlertDialogTheme</item>
-        <item name="bottomNavigationStyle">@style/PremiumBottomNavigationStyle</item>
-        <item name="toolbarStyle">@style/PremiumToolbarStyle</item>
+        <item name="bottomNavigationStyle">@style/Widget.Mobile_app.BottomNavigationView</item>
+        <item name="toolbarStyle">@style/Widget.Mobile_app.Toolbar</item>
+        <item name="materialButtonStyle">@style/Widget.Mobile_app.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.Mobile_app.Button.Outlined</item>
+        <item name="cardViewStyle">@style/Widget.Mobile_app.CardView</item>
+        <item name="textInputStyle">@style/Widget.Mobile_app.TextInputLayout.OutlinedBox</item>
         
-        <!-- Button styling -->
-        <item name="materialButtonStyle">@style/PremiumButtonStyle</item>
-        <item name="materialButtonOutlinedStyle">@style/PremiumButtonOutlinedStyle</item>
+        <!-- Text appearances -->
+        <item name="textAppearanceHeadline1">@style/TextAppearance.Mobile_app.Headline1</item>
+        <item name="textAppearanceHeadline2">@style/TextAppearance.Mobile_app.Headline2</item>
+        <item name="textAppearanceBody1">@style/TextAppearance.Mobile_app.Body1</item>
+        <item name="textAppearanceBody2">@style/TextAppearance.Mobile_app.Body2</item>
         
-        <!-- Card styling -->
-        <item name="materialCardViewStyle">@style/PremiumCardStyle</item>
-        
-        <!-- Text appearance -->
-        <item name="textAppearanceHeadline1">@style/PremiumTextAppearance.Headline1</item>
-        <item name="textAppearanceHeadline2">@style/PremiumTextAppearance.Headline2</item>
-        <item name="textAppearanceBody1">@style/PremiumTextAppearance.Body1</item>
-        <item name="textAppearanceBody2">@style/PremiumTextAppearance.Body2</item>
-
+        <!-- Text colors for dark mode -->
+        <item name="android:textColorPrimary">@color/neutral_100</item>
+        <item name="android:textColorSecondary">@color/neutral_300</item>
+        <item name="android:textColorHint">@color/neutral_500</item>
     </style>
-
+    
+    <!-- Add NoActionBar variant for night theme -->
+    <style name="Theme.Mobile_app.NoActionBar" parent="Theme.Mobile_app">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
 </resources>

@@ -29,6 +29,12 @@
     <color name="accent_danger_light">#FFEBEE</color>
     <color name="accent_danger_dark">#B71C1C</color>
     
+    <!-- Accent Colors -->
+    <color name="accent_info">#2196F3</color>  <!-- Blue 500 -->
+    <color name="outline_variant">#E0E0E0</color>  <!-- Grey 300 -->
+    <color name="on_background_medium">#757575</color>  <!-- Grey 600 -->
+    <color name="on_surface_medium">#757575</color>  <!-- Grey 600 -->
+    
     <!-- Premium Gradient Colors -->
     <color name="gradient_start">#1565C0</color>
     <color name="gradient_end">#0D47A1</color>
@@ -101,4 +107,6 @@
     <color name="card_elevation">#0D000000</color>
     <color name="chip_background">#F1F3F4</color>
     <color name="chip_text">#3C4043</color>
+
+
 </resources>

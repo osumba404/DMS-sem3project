@@ -19,6 +19,7 @@ import com.example.mobile_app.models.User;
 import com.example.mobile_app.network.ApiClient;
 import com.example.mobile_app.network.ApiService;
 import com.example.mobile_app.util.SessionManager;
+import com.google.android.material.textfield.TextInputLayout;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -26,14 +27,14 @@ import retrofit2.Response;
 
 public class AuthActivity extends AppCompatActivity {
 
-    // Declare UI elements
-    LinearLayout loginForm, registerForm;
-    EditText etLoginEmail, etLoginPassword, etRegisterName, etRegisterEmail, etRegisterPhone, etRegisterPassword;
-    Button btnLogin, btnRegister;
-    TextView tvGoToRegister, tvGoToLogin;
+    // UI Elements
+    private LinearLayout loginForm, registerForm;
+    private TextInputLayout tilLoginEmail, tilLoginPassword, tilRegisterName, tilRegisterEmail, tilRegisterPhone, tilRegisterPassword;
+    private EditText etLoginEmail, etLoginPassword, etRegisterName, etRegisterEmail, etRegisterPhone, etRegisterPassword;
+    private Button btnLogin, btnRegister;
+    private TextView tvGoToRegister, tvGoToLogin;
     private SessionManager sessionManager;
-
-    ApiService apiService;
+    private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,23 +50,41 @@ public class AuthActivity extends AppCompatActivity {
         // Setup button click listeners
         setupListeners();
 
+        // Initialize SessionManager
         sessionManager = new SessionManager(getApplicationContext());
+        
+        // Check if user is already logged in
+        if (sessionManager.isLoggedIn()) {
+            navigateToMain();
+        }
     }
 
     private void initializeViews() {
+        // Form containers
         loginForm = findViewById(R.id.login_form);
         registerForm = findViewById(R.id.register_form);
 
+        // Login form fields
+        tilLoginEmail = findViewById(R.id.til_login_email);
+        tilLoginPassword = findViewById(R.id.til_login_password);
         etLoginEmail = findViewById(R.id.et_login_email);
         etLoginPassword = findViewById(R.id.et_login_password);
+
+        // Register form fields
+        tilRegisterName = findViewById(R.id.til_register_name);
+        tilRegisterEmail = findViewById(R.id.til_register_email);
+        tilRegisterPhone = findViewById(R.id.til_register_phone);
+        tilRegisterPassword = findViewById(R.id.til_register_password);
         etRegisterName = findViewById(R.id.et_register_name);
         etRegisterEmail = findViewById(R.id.et_register_email);
         etRegisterPhone = findViewById(R.id.et_register_phone);
         etRegisterPassword = findViewById(R.id.et_register_password);
 
+        // Buttons
         btnLogin = findViewById(R.id.btn_login);
         btnRegister = findViewById(R.id.btn_register);
 
+        // Navigation text views
         tvGoToRegister = findViewById(R.id.tv_go_to_register);
         tvGoToLogin = findViewById(R.id.tv_go_to_login);
     }
@@ -98,42 +117,54 @@ public class AuthActivity extends AppCompatActivity {
         String email = etLoginEmail.getText().toString().trim();
         String password = etLoginPassword.getText().toString().trim();
 
-        if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
-            Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
+        // Reset errors
+        tilLoginEmail.setError(null);
+        tilLoginPassword.setError(null);
+
+        // Validate inputs
+        if (TextUtils.isEmpty(email)) {
+            tilLoginEmail.setError("Email is required");
             return;
         }
 
-        User user = new User(email, password);
-        apiService.loginUser(user).enqueue(new Callback<AuthResponse>() {
+        if (TextUtils.isEmpty(password)) {
+            tilLoginPassword.setError("Password is required");
+            return;
+        }
+
+        // Show loading
+        showLoading(true);
+
+        // Make login API call using the correct method name
+        Call<AuthResponse> call = apiService.loginUser(new User(email, password));
+        call.enqueue(new Callback<AuthResponse>() {
             @Override
             public void onResponse(@NonNull Call<AuthResponse> call, @NonNull Response<AuthResponse> response) {
+                showLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    AuthResponse authResponse = response.body();
-                    Toast.makeText(AuthActivity.this, authResponse.getMessage(), Toast.LENGTH_LONG).show();
-                    if ("success".equals(authResponse.getStatus())) {
-                        // Get the User object from the response
-                        User loggedInUser = authResponse.getData();
-                        // Save the user's session
-                        sessionManager.createLoginSession(loggedInUser);
-
-                        Toast.makeText(AuthActivity.this, "Welcome " + loggedInUser.getFullName(), Toast.LENGTH_LONG).show();
-
-                        // Navigate to MainActivity
-                        Intent intent = new Intent(AuthActivity.this, MainActivity.class);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        // Show error message if login failed on server
-                        Toast.makeText(AuthActivity.this, authResponse.getMessage(), Toast.LENGTH_LONG).show();
-                    }
+                    // Save user session
+                    sessionManager.createLoginSession(response.body().getData());
+                    
+                    // Navigate to main activity
+                    navigateToMain();
                 } else {
-                    Toast.makeText(AuthActivity.this, "Login failed. Please try again.", Toast.LENGTH_SHORT).show();
+                    // Handle login error
+                    String errorMessage = "Login failed. Please check your credentials.";
+                    if (response.errorBody() != null) {
+                        try {
+                            errorMessage = response.errorBody().string();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    Toast.makeText(AuthActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<AuthResponse> call, @NonNull Throwable t) {
-                Toast.makeText(AuthActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                showLoading(false);
+                Toast.makeText(AuthActivity.this, "Network error. Please try again.", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -144,31 +175,81 @@ public class AuthActivity extends AppCompatActivity {
         String phone = etRegisterPhone.getText().toString().trim();
         String password = etRegisterPassword.getText().toString().trim();
 
-        if (TextUtils.isEmpty(name) || TextUtils.isEmpty(email) || TextUtils.isEmpty(phone) || TextUtils.isEmpty(password)) {
-            Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
+        // Reset errors
+        tilRegisterName.setError(null);
+        tilRegisterEmail.setError(null);
+        tilRegisterPhone.setError(null);
+        tilRegisterPassword.setError(null);
+
+        // Validate inputs
+        if (TextUtils.isEmpty(name)) {
+            tilRegisterName.setError("Name is required");
             return;
         }
 
+        if (TextUtils.isEmpty(email)) {
+            tilRegisterEmail.setError("Email is required");
+            return;
+        }
+
+        if (TextUtils.isEmpty(phone)) {
+            tilRegisterPhone.setError("Phone number is required");
+            return;
+        }
+
+        if (TextUtils.isEmpty(password)) {
+            tilRegisterPassword.setError("Password is required");
+            return;
+        }
+
+        // Show loading
+        showLoading(true);
+
+        // Create user object
         User user = new User(name, email, password, phone);
-        apiService.registerUser(user).enqueue(new Callback<AuthResponse>() {
+
+        // Make registration API call using the correct method name
+        Call<AuthResponse> call = apiService.registerUser(user);
+        call.enqueue(new Callback<AuthResponse>() {
             @Override
             public void onResponse(@NonNull Call<AuthResponse> call, @NonNull Response<AuthResponse> response) {
+                showLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    AuthResponse authResponse = response.body();
-                    Toast.makeText(AuthActivity.this, authResponse.getMessage(), Toast.LENGTH_LONG).show();
-                    if ("success".equals(authResponse.getStatus())) {
-                        // Switch to login form after successful registration
-                        toggleForms(true);
-                    }
+                    // Registration successful, switch to login form
+                    toggleForms(true);
+                    Toast.makeText(AuthActivity.this, "Registration successful. Please login.", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(AuthActivity.this, "Registration failed. Please try again.", Toast.LENGTH_SHORT).show();
+                    // Handle registration error
+                    String errorMessage = "Registration failed. Please try again.";
+                    if (response.errorBody() != null) {
+                        try {
+                            errorMessage = response.errorBody().string();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    Toast.makeText(AuthActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<AuthResponse> call, @NonNull Throwable t) {
-                Toast.makeText(AuthActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                showLoading(false);
+                Toast.makeText(AuthActivity.this, "Network error. Please try again.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void showLoading(boolean show) {
+        if (show) {
+            // Show loading UI
+        } else {
+            // Hide loading UI
+        }
+    }
+
+    private void navigateToMain() {
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
     }
 }
