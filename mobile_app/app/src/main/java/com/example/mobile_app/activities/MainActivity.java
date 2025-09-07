@@ -120,13 +120,33 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, EmergencyContactsActivity.class));
             return true;
         } else if (itemId == R.id.menu_profile) {
-            // THE FIX: Open the real ProfileActivity
+            // Open ProfileActivity
             startActivity(new Intent(this, ProfileActivity.class));
             return true;
         } else if (itemId == R.id.menu_logout) {
-            // ... (logout logic)
+            // Show logout confirmation dialog
+            showLogoutConfirmationDialog();
+            return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showLogoutConfirmationDialog() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Logout", (dialog, which) -> {
+                    // Clear user session
+                    sessionManager.logoutUser();
+                    
+                    // Navigate to AuthActivity
+                    Intent intent = new Intent(MainActivity.this, AuthActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
     }
 
     private final BottomNavigationView.OnItemSelectedListener navListener =

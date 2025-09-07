@@ -41,32 +41,64 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile);
+        
+        try {
+            setContentView(R.layout.activity_profile);
 
-        sessionManager = new SessionManager(getApplicationContext());
-        apiService = ApiClient.getApiService();
-        userId = sessionManager.getUserId();
+            sessionManager = new SessionManager(getApplicationContext());
+            apiService = ApiClient.getApiService();
+            userId = sessionManager.getUserId();
 
-        initializeViews();
-        setupToolbar();
-        setupClickListeners();
+            if (userId == 0) {
+                Toast.makeText(this, "Session expired. Please login again.", Toast.LENGTH_LONG).show();
+                finish();
+                return;
+            }
 
-        fetchUserProfile();
+            initializeViews();
+            setupToolbar();
+            setupClickListeners();
+
+            fetchUserProfile();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error loading profile: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            finish();
+        }
     }
 
     private void initializeViews() {
-        tvEmail = findViewById(R.id.tv_profile_email);
-        etName = findViewById(R.id.et_profile_name);
-        etPhone = findViewById(R.id.et_profile_phone);
-        btnSaveChanges = findViewById(R.id.btn_save_changes);
-        btnManageContacts = findViewById(R.id.btn_manage_contacts);
-        btnChangePassword = findViewById(R.id.btn_change_password);
-        progressBar = findViewById(R.id.progress_bar_profile);
+        try {
+            tvEmail = findViewById(R.id.tv_profile_email);
+            etName = findViewById(R.id.et_profile_name);
+            etPhone = findViewById(R.id.et_profile_phone);
+            btnSaveChanges = findViewById(R.id.btn_save_changes);
+            btnManageContacts = findViewById(R.id.btn_manage_contacts);
+            btnChangePassword = findViewById(R.id.btn_change_password);
+            progressBar = findViewById(R.id.progress_bar_profile);
+            
+            // Check if any views are null
+            if (tvEmail == null || etName == null || etPhone == null || 
+                btnSaveChanges == null || btnManageContacts == null || 
+                btnChangePassword == null || progressBar == null) {
+                throw new RuntimeException("One or more views not found in layout");
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Layout error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            throw e;
+        }
     }
 
     private void setupToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar_profile);
         setSupportActionBar(toolbar);
+        
+        // Enable back button
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+        
+        // Handle back button click
         toolbar.setNavigationOnClickListener(v -> finish());
     }
 
@@ -105,9 +137,21 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void populateUI(ProfileData profile) {
-        tvEmail.setText(profile.getEmail());
-        etName.setText(profile.getFullName());
-        etPhone.setText(profile.getPhoneNumber());
+        try {
+            if (profile != null) {
+                if (tvEmail != null && profile.getEmail() != null) {
+                    tvEmail.setText(profile.getEmail());
+                }
+                if (etName != null && profile.getFullName() != null) {
+                    etName.setText(profile.getFullName());
+                }
+                if (etPhone != null && profile.getPhoneNumber() != null) {
+                    etPhone.setText(profile.getPhoneNumber());
+                }
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Error displaying profile data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void saveProfileChanges() {
