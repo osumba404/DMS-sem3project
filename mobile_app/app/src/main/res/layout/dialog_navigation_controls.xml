@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_baseline_navigation_24"
+                android:tint="@color/primary"
+                android:layout_marginEnd="12dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Navigation"
+                android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+                android:textColor="@color/on_surface"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- Destination Info -->
+        <TextView
+            android:id="@+id/navigationDestination"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Navigating to Shelter"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+            android:textColor="@color/on_surface"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Distance Info -->
+        <TextView
+            android:id="@+id/navigationDistance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Calculating distance..."
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="@color/on_surface_variant"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Action Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp">
+
+            <!-- Recenter Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRecenter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Recenter Map"
+                android:layout_marginBottom="8dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:icon="@drawable/ic_baseline_center_focus_strong_24"
+                app:iconTint="@color/primary"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp" />
+
+            <!-- External Maps Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExternalMaps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Open in Google Maps"
+                android:layout_marginBottom="8dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:icon="@drawable/ic_baseline_map_24"
+                app:iconTint="@color/primary"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp" />
+
+            <!-- Stop Navigation Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnStopNavigation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Stop Navigation"
+                android:backgroundTint="@color/accent_danger"
+                app:icon="@drawable/ic_baseline_close_24"
+                app:iconTint="@color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
