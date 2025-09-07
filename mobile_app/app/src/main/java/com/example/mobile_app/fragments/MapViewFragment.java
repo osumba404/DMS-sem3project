@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
@@ -166,6 +167,9 @@ public class MapViewFragment extends Fragment {
         progressBar.setVisibility(View.VISIBLE);
 
         int searchRadiusKm = 50; // Default search radius of 50km
+        
+        Toast.makeText(requireContext(), "Fetching map data...", Toast.LENGTH_SHORT).show();
+        
         apiService.getMapData(lat, lon, searchRadiusKm).enqueue(new Callback<MapDataResponse>() {
             @Override
             public void onResponse(@NonNull Call<MapDataResponse> call, @NonNull Response<MapDataResponse> response) {
@@ -176,20 +180,38 @@ public class MapViewFragment extends Fragment {
                     if (mapData != null) {
                         shelters = mapData.getShelters();
                         disasters = mapData.getDisasters();
+                        
+                        // Debug logging
+                        int shelterCount = shelters != null ? shelters.size() : 0;
+                        int disasterCount = disasters != null ? disasters.size() : 0;
+                        
+                        Toast.makeText(requireContext(), 
+                            String.format("Found %d shelters, %d disasters", shelterCount, disasterCount), 
+                            Toast.LENGTH_LONG).show();
+                        
                         if (shelters != null && !shelters.isEmpty()) {
                             addShelterMarkers(shelters);
+                        } else {
+                            Toast.makeText(requireContext(), "No shelters found in area", Toast.LENGTH_SHORT).show();
                         }
+                        
                         if (disasters != null && !disasters.isEmpty()) {
                             addDisasterMarkers(disasters);
+                        } else {
+                            Toast.makeText(requireContext(), "No active disasters found", Toast.LENGTH_SHORT).show();
                         }
+                    } else {
+                        Toast.makeText(requireContext(), "No map data received", Toast.LENGTH_SHORT).show();
                     }
+                } else {
+                    Toast.makeText(requireContext(), "API Error: " + response.code(), Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<MapDataResponse> call, @NonNull Throwable t) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(requireContext(), "Failed to load map data", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Network Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -198,18 +220,39 @@ public class MapViewFragment extends Fragment {
         if (shelters == null || map == null) return;
 
         List<OverlayItem> items = new ArrayList<>();
+        int validMarkers = 0;
+        
         for (Shelter shelter : shelters) {
-            OverlayItem item = new OverlayItem(shelter.getName(), shelter.getAddress(), new GeoPoint(shelter.getLatitude(), shelter.getLongitude()));
+            try {
+                // Validate coordinates
+                double lat = shelter.getLatitude();
+                double lon = shelter.getLongitude();
+                
+                // Skip invalid coordinates
+                if (lat == 0.0 && lon == 0.0) {
+                    continue;
+                }
+                
+                OverlayItem item = new OverlayItem(
+                    shelter.getName(), 
+                    shelter.getAddress(), 
+                    new GeoPoint(lat, lon)
+                );
 
-            // Set the shelter marker icon
-            Drawable marker = ContextCompat.getDrawable(requireContext(), R.drawable.ic_shelter_marker);
-            if (marker != null) {
-                marker = marker.mutate();
-                marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker.getIntrinsicHeight());
-                item.setMarker(marker);
+                // Set the shelter marker icon
+                Drawable marker = ContextCompat.getDrawable(requireContext(), R.drawable.ic_shelter_marker);
+                if (marker != null) {
+                    marker = marker.mutate();
+                    marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker.getIntrinsicHeight());
+                    item.setMarker(marker);
+                }
+
+                items.add(item);
+                validMarkers++;
+                
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-
-            items.add(item);
         }
 
         // Remove existing overlay if it exists
@@ -217,22 +260,32 @@ public class MapViewFragment extends Fragment {
             map.getOverlays().remove(shelterOverlay);
         }
 
-        // Create and add new overlay
-        shelterOverlay = new ItemizedIconOverlay<>(items, new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
-            @Override
-            public boolean onItemSingleTapUp(int index, OverlayItem item) {
-                return false;
-            }
+        if (!items.isEmpty()) {
+            // Create and add new overlay
+            shelterOverlay = new ItemizedIconOverlay<>(items, new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+                @Override
+                public boolean onItemSingleTapUp(int index, OverlayItem item) {
+                    return false;
+                }
 
-            @Override
-            public boolean onItemLongPress(int index, OverlayItem item) {
-                showShelterDetails(shelters.get(index));
-                return true;
-            }
-        }, requireContext().getApplicationContext());
+                @Override
+                public boolean onItemLongPress(int index, OverlayItem item) {
+                    if (index < shelters.size()) {
+                        showShelterDetails(shelters.get(index));
+                    }
+                    return true;
+                }
+            }, requireContext().getApplicationContext());
 
-        map.getOverlays().add(shelterOverlay);
-        map.invalidate();
+            map.getOverlays().add(shelterOverlay);
+            map.invalidate();
+            
+            Toast.makeText(requireContext(), 
+                String.format("Added %d shelter markers to map", validMarkers), 
+                Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(requireContext(), "No valid shelter coordinates found", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void addDisasterMarkers(List<DisasterAlert> disasters) {
@@ -372,6 +425,8 @@ public class MapViewFragment extends Fragment {
         // Initialize views
         TextView titleView = dialogView.findViewById(R.id.disasterTitle);
         TextView severityView = dialogView.findViewById(R.id.disasterSeverity);
+        TextView typeView = dialogView.findViewById(R.id.disasterType);
+        TextView statusView = dialogView.findViewById(R.id.disasterStatus);
         ImageView iconView = dialogView.findViewById(R.id.disasterIcon);
         TextView locationView = dialogView.findViewById(R.id.disasterLocation);
         TextView timeView = dialogView.findViewById(R.id.disasterTime);
@@ -380,6 +435,36 @@ public class MapViewFragment extends Fragment {
 
         // Set disaster data
         titleView.setText(disaster.getName());
+        
+        // Set disaster type
+        String type = disaster.getType();
+        typeView.setText(type != null ? type : "Unknown");
+        
+        // Set disaster status with color coding
+        String status = disaster.getStatus();
+        statusView.setText(status != null ? status : "Unknown");
+        
+        // Set status background color based on status
+        int statusColorResId;
+        switch (status != null ? status.toLowerCase() : "") {
+            case "evacuate":
+                statusColorResId = R.color.accent_danger;
+                break;
+            case "prepare":
+                statusColorResId = R.color.accent_warning;
+                break;
+            case "all clear":
+                statusColorResId = R.color.accent_success;
+                break;
+            case "inactive":
+                statusColorResId = R.color.surface_variant;
+                break;
+            default:
+                statusColorResId = R.color.surface_variant;
+        }
+        statusView.setBackgroundTintList(ColorStateList.valueOf(
+            ContextCompat.getColor(requireContext(), statusColorResId)));
+        
         String severity = disaster.getSeverity().toLowerCase();
         severityView.setText(severity);
 
@@ -398,9 +483,9 @@ public class MapViewFragment extends Fragment {
         }
         severityView.setBackgroundColor(ContextCompat.getColor(requireContext(), bgColorResId));
 
-        // Set icon based on disaster type (you can expand this switch with more types)
+        // Set icon based on disaster type
         int iconResId;
-        switch (disaster.getType().toLowerCase()) {
+        switch (type != null ? type.toLowerCase() : "") {
             case "flood":
                 iconResId = R.drawable.ic_baseline_flood_24;
                 break;
@@ -408,26 +493,55 @@ public class MapViewFragment extends Fragment {
                 iconResId = R.drawable.ic_baseline_terrain_24;
                 break;
             case "fire":
+            case "wildfire":
                 iconResId = R.drawable.ic_baseline_local_fire_department_24;
+                break;
+            case "hurricane":
+            case "tornado":
+                iconResId = R.drawable.ic_baseline_air_24;
+                break;
+            case "tsunami":
+                iconResId = R.drawable.ic_baseline_waves_24;
                 break;
             default:
                 iconResId = R.drawable.ic_baseline_warning_24;
         }
         iconView.setImageResource(iconResId);
 
-        locationView.setText(String.format("%.6f, %.6f",
+        // Set location (use human-readable location if available, otherwise coordinates)
+        String location = disaster.getLocation();
+        if (location != null && !location.isEmpty()) {
+            locationView.setText(location);
+        } else {
+            locationView.setText(String.format("%.6f, %.6f",
                 disaster.getLatitude(),
                 disaster.getLongitude()));
+        }
 
-        // Format the timestamp
+        // Format the upload/creation timestamp
         SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy h:mm a", Locale.getDefault());
         if (disaster.getCreatedAt() != null && !disaster.getCreatedAt().isEmpty()) {
             try {
-                // Parse the ISO 8601 timestamp
-                OffsetDateTime dateTime = OffsetDateTime.parse(disaster.getCreatedAt());
-                timeView.setText(sdf.format(Date.from(dateTime.toInstant())));
+                // Try parsing different timestamp formats
+                Date date;
+                if (disaster.getCreatedAt().contains("T")) {
+                    // ISO 8601 format
+                    OffsetDateTime dateTime = OffsetDateTime.parse(disaster.getCreatedAt());
+                    date = Date.from(dateTime.toInstant());
+                } else {
+                    // MySQL datetime format
+                    SimpleDateFormat mysqlFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    date = mysqlFormat.parse(disaster.getCreatedAt());
+                }
+                timeView.setText(sdf.format(date));
             } catch (Exception e) {
-                timeView.setText("N/A");
+                // Fallback to relative time if available
+                String relativeTime = disaster.getRelativeTime();
+                if (relativeTime != null && !relativeTime.isEmpty()) {
+                    timeView.setText(relativeTime);
+                } else {
+                    timeView.setText("Time not available");
+                }
                 e.printStackTrace();
             }
         } else {
@@ -445,11 +559,12 @@ public class MapViewFragment extends Fragment {
 
         // Handle view on map button click
         btnViewOnMap.setOnClickListener(v -> {
-            // Center the map on the disaster location
-            GeoPoint point = new GeoPoint(disaster.getLatitude(), disaster.getLongitude());
-            mapController.animateTo(point);
-            mapController.setZoom(15.0);
             dialog.dismiss();
+            
+            // Center map on disaster location
+            GeoPoint disasterPoint = new GeoPoint(disaster.getLatitude(), disaster.getLongitude());
+            map.getController().animateTo(disasterPoint);
+            map.getController().setZoom(15.0);
         });
 
         dialog.show();

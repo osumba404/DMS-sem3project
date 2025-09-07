@@ -93,13 +93,13 @@ $disasters_data = call_api('disasters_get_all.php');
                             </select>
                         </td>
                         <td class="geography-cell">
-                            <button class="btn btn-secondary btn-view-geography" data-geometry="<?php echo htmlspecialchars($disaster['affected_area_geometry'] ?? ''); ?>" title="View on Map">
+                            <button class="btn btn-secondary btn-view-geography" data-geometry="<?php echo htmlspecialchars($disaster['affected_area'] ?? ''); ?>" title="View on Map">
                                 <i class="fas fa-map"></i> View Area
                             </button>
                         </td>
                         <td><?php echo htmlspecialchars($disaster['created_at']); ?></td>
                         <td class="actions-cell">
-                            <button class="btn btn-primary btn-edit-disaster" data-id="<?php echo htmlspecialchars($disaster['id']); ?>" data-name="<?php echo htmlspecialchars($disaster['name']); ?>" data-type="<?php echo htmlspecialchars($disaster['type']); ?>" data-geometry="<?php echo htmlspecialchars($disaster['affected_area_geometry'] ?? ''); ?>">
+                            <button class="btn btn-primary btn-edit-disaster" data-id="<?php echo htmlspecialchars($disaster['id']); ?>" data-name="<?php echo htmlspecialchars($disaster['name']); ?>" data-type="<?php echo htmlspecialchars($disaster['type']); ?>" data-geometry="<?php echo htmlspecialchars($disaster['affected_area'] ?? ''); ?>">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
                             <button class="btn btn-danger btn-delete-disaster" data-id="<?php echo htmlspecialchars($disaster['id']); ?>" data-name="<?php echo htmlspecialchars($disaster['name']); ?>">

@@ -65,7 +65,7 @@
                         android:layout_height="wrap_content"
                         android:text="Email Address"
                         android:textAppearance="@style/TextAppearance.Mobile_app.Body2"
-                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textColor="@android:color/darker_gray"
                         android:textSize="12sp"
                         android:layout_marginBottom="4dp" />
 

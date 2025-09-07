@@ -11,8 +11,8 @@ require_once '../../config/db_connect.php';
 $query = "SELECT 
             id, 
             name, 
-            ST_X(location) as latitude, 
-            ST_Y(location) as longitude, 
+            ST_Y(location) as latitude, 
+            ST_X(location) as longitude, 
             capacity, 
             current_occupancy, 
             status, 

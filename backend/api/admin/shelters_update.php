@@ -52,8 +52,9 @@ if (empty($shelter_id) || empty($name) || empty($capacity) || empty($status)) {
 }
 
 try {
-    $stmt = $conn->prepare("UPDATE shelters SET name = ?, capacity = ?, status = ?, latitude = ?, longitude = ?, supplies = ? WHERE id = ?");
-    $stmt->bind_param("sissis", $name, $capacity, $status, $latitude, $longitude, $supplies, $shelter_id);
+    $supplies_json = json_encode($supplies);
+    $stmt = $conn->prepare("UPDATE shelters SET name = ?, capacity = ?, status = ?, location = POINT(?, ?), available_supplies = ? WHERE id = ?");
+    $stmt->bind_param("sisssi", $name, $capacity, $status, $longitude, $latitude, $supplies_json, $shelter_id);
     $stmt->execute();
     
     if ($stmt->affected_rows > 0) {

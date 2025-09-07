@@ -62,8 +62,8 @@ try {
             s.current_occupancy,
             s.available_supplies,
             s.status,
-            ST_X(s.location) as latitude, 
-            ST_Y(s.location) as longitude,
+            ST_Y(s.location) as latitude, 
+            ST_X(s.location) as longitude,
             (6371 * acos( 
                 cos(radians(?)) *
                 cos(radians(ST_Y(s.location))) *

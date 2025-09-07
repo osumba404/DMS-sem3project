@@ -18,7 +18,7 @@ try {
 
     $shelter_id = intval($_GET['id']);
     
-    $stmt = $pdo->prepare("SELECT * FROM shelters WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id, name, capacity, current_occupancy, available_supplies, status, ST_Y(location) as latitude, ST_X(location) as longitude, updated_at FROM shelters WHERE id = ?");
     $stmt->execute([$shelter_id]);
     $shelter = $stmt->fetch(PDO::FETCH_ASSOC);
     
